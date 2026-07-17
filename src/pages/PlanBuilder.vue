@@ -592,6 +592,7 @@ function startCreatedPlan() {
 <style lang="scss" scoped>
 .plan-builder-page {
   padding: var(--space-xl);
+  padding-bottom: calc(var(--player-bar-height, 80px) + var(--space-xl));
   max-width: 1600px;
   min-height: 100%;
   display: flex;

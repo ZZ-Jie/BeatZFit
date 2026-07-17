@@ -2007,6 +2007,30 @@ window.addEventListener('beatzfit:qqLoginChanged', onQqLoginChanged)
     await nextTick()
     updateShelfTracks()
     recordShelf.setSpacing(spacing.value)
+
+    // Reconcile login state with cached data — the user may have logged
+    // in/out from another component (UserCapsule, NeteaseLoginCard) while
+    // MusicPage was unmounted. In the horizontal single-page architecture,
+    // page switches unmount/remount components, so the watch() callbacks
+    // and event listeners don't fire during the unmounted period.
+    if (neteaseLoggedIn.value && neteasePlaylists.value.length === 0) {
+      loadNeteasePlaylists().then(() => loadAllNeteasePlaylistTracks())
+    } else if (!neteaseLoggedIn.value && neteasePlaylists.value.length > 0) {
+      neteasePlaylists.value = []
+      neteaseTracksCache.value = {}
+      displayOrder.value = displayOrder.value.filter(id => !id.startsWith('netease-'))
+      saveDisplayOrder()
+      updateShelfTracks()
+    }
+    if (qqLoggedIn.value && qqPlaylists.value.length === 0) {
+      loadQqPlaylists().then(() => loadAllQqPlaylistTracks())
+    } else if (!qqLoggedIn.value && qqPlaylists.value.length > 0) {
+      qqPlaylists.value = []
+      qqTracksCache.value = {}
+      displayOrder.value = displayOrder.value.filter(id => !id.startsWith('qq-'))
+      saveDisplayOrder()
+      updateShelfTracks()
+    }
     return
   }
 
