@@ -1147,6 +1147,44 @@ neteaseTracksCache.value = {}
 loadAllNeteasePlaylistTracks()
 }
 
+// Handle login/logout events from other components (NeteaseLoginCard, UserCapsule)
+async function onNeteaseLoginChanged(e: Event) {
+  if (_isSelfDispatching) return
+  const detail = (e as CustomEvent).detail as { loggedIn: boolean } | undefined
+  if (detail?.loggedIn) {
+    cacheInvalidatePrefix(CacheNS.NeteasePlaylists, '')
+    cacheInvalidatePrefix(CacheNS.NeteasePlaylistDetail, '')
+    await checkNeteaseShared(true)
+    await loadNeteasePlaylists(true)
+    loadAllNeteasePlaylistTracks()
+  } else {
+    neteasePlaylists.value = []
+    neteaseTracksCache.value = {}
+    displayOrder.value = displayOrder.value.filter(id => !id.startsWith('netease-'))
+    saveDisplayOrder()
+    updateShelfTracks()
+  }
+}
+
+// Handle QQ music login/logout events from other components (UserCapsule)
+async function onQqLoginChanged(e: Event) {
+  if (_isSelfDispatching) return
+  const detail = (e as CustomEvent).detail as { loggedIn: boolean } | undefined
+  if (detail?.loggedIn) {
+    cacheInvalidatePrefix(CacheNS.QqPlaylists, '')
+    cacheInvalidatePrefix(CacheNS.QqPlaylistDetail, '')
+    await checkQqShared(true)
+    await loadQqPlaylists(true)
+    loadAllQqPlaylistTracks()
+  } else {
+    qqPlaylists.value = []
+    qqTracksCache.value = {}
+    displayOrder.value = displayOrder.value.filter(id => !id.startsWith('qq-'))
+    saveDisplayOrder()
+    updateShelfTracks()
+  }
+}
+
 async function loadNeteasePlaylistTracks(playlistId: number): Promise<void> {
   try {
     const songs = await cachedFetch(
@@ -1180,6 +1218,8 @@ async function loadNeteasePlaylistTracks(playlistId: number): Promise<void> {
  * onMounted and the neteaseLoggedIn watcher firing simultaneously.
  */
 let _loadingNeteaseTracks = false
+// Flag to prevent MusicPage from processing its own dispatched login events
+let _isSelfDispatching = false
 async function loadAllNeteasePlaylistTracks(): Promise<void> {
   if (_loadingNeteaseTracks) return
   _loadingNeteaseTracks = true
@@ -1209,6 +1249,10 @@ async function handleNeteaseLogin() {
   await loadNeteasePlaylists(true)
   // Load tracks for each netease playlist sequentially (avoid 502 ECONNRESET)
   loadAllNeteasePlaylistTracks()
+  // Broadcast login event so DualDeckHome can refresh (skip self via flag)
+  _isSelfDispatching = true
+  window.dispatchEvent(new CustomEvent('beatzfit:neteaseLoginChanged', { detail: { loggedIn: true } }))
+  _isSelfDispatching = false
 }
 } catch (e) {
   console.error('[MusicPage] Netease login failed:', e)
@@ -1232,6 +1276,10 @@ async function handleNeteaseLogout() {
   cacheInvalidatePrefix(CacheNS.NeteaseLyric, '')
   toast.success('已退出网易云，正在重新打开登录窗口...')
   updateShelfTracks()
+  // Broadcast logout event so DualDeckHome can clear playlists (skip self via flag)
+  _isSelfDispatching = true
+  window.dispatchEvent(new CustomEvent('beatzfit:neteaseLoginChanged', { detail: { loggedIn: false } }))
+  _isSelfDispatching = false
   // Re-open the Netease login window so the user can log in with a fresh session
   setTimeout(async () => {
     try {
@@ -1340,6 +1388,10 @@ async function handleQqLogin() {
       await checkQqShared(true)
       await loadQqPlaylists(true)
       loadAllQqPlaylistTracks()
+      // Broadcast login event so DualDeckHome can refresh (skip self via flag)
+      _isSelfDispatching = true
+      window.dispatchEvent(new CustomEvent('beatzfit:qqLoginChanged', { detail: { loggedIn: true } }))
+      _isSelfDispatching = false
     }
   } catch (e) {
     console.error('[MusicPage] QQ login failed:', e)
@@ -1362,6 +1414,10 @@ async function handleQqLogout() {
   cacheInvalidatePrefix(CacheNS.QqLyric, '')
   toast.success('已退出QQ音乐')
   updateShelfTracks()
+  // Broadcast logout event so DualDeckHome can clear playlists (skip self via flag)
+  _isSelfDispatching = true
+  window.dispatchEvent(new CustomEvent('beatzfit:qqLoginChanged', { detail: { loggedIn: false } }))
+  _isSelfDispatching = false
 }
 
 // ── QQ track conversion ────────────────────────────────
@@ -1922,6 +1978,9 @@ onMounted(async () => {
 
 // Listen for netease data changes (e.g. user liked a song from search)
 window.addEventListener('beatzfit:neteaseDataChanged', onNeteaseDataChanged)
+// Listen for login/logout events from other components (NeteaseLoginCard, UserCapsule)
+window.addEventListener('beatzfit:neteaseLoginChanged', onNeteaseLoginChanged)
+window.addEventListener('beatzfit:qqLoginChanged', onQqLoginChanged)
 
   // ── 进入页面即激活 3D 交互 ──
   // 等待 recordShelf 初始化 + canvas reparent 完成后绑定
@@ -2029,6 +2088,8 @@ onBeforeUnmount(() => {
 onUnmounted(() => {
 window.removeEventListener('click', closeContextMenu)
 window.removeEventListener('beatzfit:neteaseDataChanged', onNeteaseDataChanged)
+window.removeEventListener('beatzfit:neteaseLoginChanged', onNeteaseLoginChanged)
+window.removeEventListener('beatzfit:qqLoginChanged', onQqLoginChanged)
   if (sectionObserver) {
     sectionObserver.disconnect()
     sectionObserver = null

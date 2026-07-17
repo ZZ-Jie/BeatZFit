@@ -17,7 +17,22 @@ export default defineConfig({
           build: {
             outDir: 'dist-electron/main',
             rollupOptions: {
-              external: ['electron', 'sql.js', 'music-metadata', 'NeteaseCloudMusicApi', 'sharp', 'axios']
+              external: ['electron', 'sql.js', 'music-metadata', 'NeteaseCloudMusicApi', 'sharp', 'axios'],
+              output: {
+                banner: `// BeatZFit auto-relaunch: if ELECTRON_RUN_AS_NODE is set (e.g. by CatPaw/Cursor/VSCode IDE),
+// Electron runs as plain Node.js (no GUI). Detect and relaunch as proper Electron.
+if (process.env.ELECTRON_RUN_AS_NODE) {
+  delete process.env.ELECTRON_RUN_AS_NODE;
+  var _cp = require('child_process');
+  _cp.spawn(process.execPath, process.argv.slice(1), {
+    detached: true,
+    stdio: 'ignore',
+    env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: undefined })
+  }).unref();
+  process.exit(0);
+}
+`
+              }
             }
           }
         }

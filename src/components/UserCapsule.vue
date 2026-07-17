@@ -221,7 +221,10 @@ async function handleNeteaseLogin() {
   if (!window.electronAPI?.netease) return
   try {
     const result = await window.electronAPI.netease.openLogin()
-    if (result.success) await netease.checkLoginStatus(true)
+    if (result.success) {
+      await netease.checkLoginStatus(true)
+      window.dispatchEvent(new CustomEvent('beatzfit:neteaseLoginChanged', { detail: { loggedIn: true } }))
+    }
   } catch (e) {
     console.error('[UserCapsule] Netease login failed:', e)
   }
@@ -232,7 +235,10 @@ async function handleQqLogin() {
   if (!window.electronAPI?.qq) return
   try {
     const result = await window.electronAPI.qq.openLogin()
-    if (result.success) await qq.checkLoginStatus(true)
+    if (result.success) {
+      await qq.checkLoginStatus(true)
+      window.dispatchEvent(new CustomEvent('beatzfit:qqLoginChanged', { detail: { loggedIn: true } }))
+    }
   } catch (e) {
     console.error('[UserCapsule] QQ login failed:', e)
   }
@@ -244,10 +250,14 @@ async function handleNeteaseLogout() {
   await window.electronAPI.netease.logout()
   netease.clearStatus()
   isExpanded.value = false
+  window.dispatchEvent(new CustomEvent('beatzfit:neteaseLoginChanged', { detail: { loggedIn: false } }))
   setTimeout(async () => {
     try {
       const result = await window.electronAPI?.netease?.openLogin()
-      if (result?.success) await netease.checkLoginStatus(true)
+      if (result?.success) {
+        await netease.checkLoginStatus(true)
+        window.dispatchEvent(new CustomEvent('beatzfit:neteaseLoginChanged', { detail: { loggedIn: true } }))
+      }
     } catch (e) {
       console.error('[UserCapsule] Netease re-login failed:', e)
     }
@@ -259,6 +269,7 @@ async function handleQqLogout() {
   await window.electronAPI.qq.logout()
   qq.clearStatus()
   isExpanded.value = false
+  window.dispatchEvent(new CustomEvent('beatzfit:qqLoginChanged', { detail: { loggedIn: false } }))
 }
 
 function goToMusic(_source?: 'netease' | 'qq') {

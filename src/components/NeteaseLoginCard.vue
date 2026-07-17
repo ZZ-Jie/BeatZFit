@@ -268,6 +268,8 @@ async function handleLogin() {
       cacheInvalidatePrefix(CacheNS.NeteasePlaylistDetail, '')
       neteaseUI.reset()
       await checkLoginStatus(true)
+      // Broadcast login event so DualDeckHome and MusicPage can refresh
+      window.dispatchEvent(new CustomEvent('beatzfit:neteaseLoginChanged', { detail: { loggedIn: true } }))
     }
   } catch (e) {
     console.error('Login failed:', e)
@@ -290,6 +292,8 @@ async function handleLogout() {
   cacheInvalidatePrefix(CacheNS.NeteaseSongUrl, '')
   cacheInvalidatePrefix(CacheNS.NeteaseLyric, '')
   neteaseUI.reset()
+  // Broadcast logout event so DualDeckHome and MusicPage can clear playlists
+  window.dispatchEvent(new CustomEvent('beatzfit:neteaseLoginChanged', { detail: { loggedIn: false } }))
 }
 
 async function loadPlaylists(uid: number, opts: { force?: boolean } = {}) {

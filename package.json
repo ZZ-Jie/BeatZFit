@@ -79,7 +79,7 @@
       "installerIcon": "resources/icons/icon.ico",
       "uninstallerIcon": "resources/icons/icon.ico",
       "installerHeaderIcon": "resources/icons/icon.ico",
-      "include": "build/installer.nsh",
+      "include": "build/beatzfit-installer.nsh",
       "installerLanguages": ["zh_CN"],
       "language": "2052",
       "createDesktopShortcut": true,

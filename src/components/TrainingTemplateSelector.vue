@@ -32,30 +32,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import type { TrainingTemplate } from '@/types'
 import { useSfx } from '@/composables/useSfx'
+import templatesData from '@/data/trainingTemplates.json'
 
 const emit = defineEmits<{
   select: [template: TrainingTemplate]
 }>()
 
 const sfx = useSfx()
-const templates = ref<TrainingTemplate[]>([])
-
-onMounted(async () => {
-  try {
-    // Load the templates JSON from the public/presets directory.
-    // In production this is served from the dist folder; in dev it's
-    // served by Vite from the public directory.
-    const response = await fetch('/presets/trainingTemplates.json')
-    if (response.ok) {
-      templates.value = await response.json()
-    }
-  } catch (e) {
-    console.error('[template] Failed to load training templates:', e)
-  }
-})
+// Import JSON directly so Vite bundles it into the JS output.
+// This avoids fetch('/presets/...') which fails under file:// protocol
+// in the packaged Electron app (absolute path resolves to filesystem root).
+const templates = ref<TrainingTemplate[]>(templatesData as TrainingTemplate[])
 
 function onSelect(tpl: TrainingTemplate) {
   sfx.detent()

@@ -165,6 +165,7 @@ import type { NeteasePlaylist, NeteaseSong } from '@/types/netease.d'
 import type { QqPlaylist, QqSong } from '@/types/qq.d'
 import { useGlobalVisualizer } from '@/composables/useGlobalVisualizer'
 import { useNeteaseStatus } from '@/composables/useNeteaseStatus'
+import { useQqStatus } from '@/composables/useQqStatus'
 import { useNeteaseLikes } from '@/composables/useNeteaseLikes'
 import { useImmersivePrefs, savePrefs } from '@/composables/useImmersivePrefs'
 import { useSfx } from '@/composables/useSfx'
@@ -413,10 +414,10 @@ await checkNeteaseStatus()
   }
 })
 
-async function checkNeteaseStatus() {
+async function checkNeteaseStatus(force = false) {
   if (!window.electronAPI?.netease) return
   try {
-    await checkNeteaseShared()
+    await checkNeteaseShared(force)
     const { isLoggedIn: loggedIn, userInfo: info } = useNeteaseStatus()
     if (loggedIn.value && info.value?.userId) {
       const uid = info.value.userId
@@ -428,12 +429,27 @@ async function checkNeteaseStatus() {
           if (!result.success || !result.data) return []
           return result.data.playlists || []
         },
-        { ttlMs: CacheTTL.PLAYLISTS }
+        { ttlMs: CacheTTL.PLAYLISTS, forceRefresh: force }
       )
       neteasePlaylists.value = list
+      _cachedNeteasePlaylists = list
     }
   } catch (e) {
     console.error('[DualDeckHome] Netease status check failed:', e)
+  }
+}
+
+// Handle netease login/logout events from other components (NeteaseLoginCard, UserCapsule, MusicPage)
+async function onNeteaseLoginChanged(e: Event) {
+  const detail = (e as CustomEvent).detail as { loggedIn: boolean } | undefined
+  if (detail?.loggedIn) {
+    // Login: clear cache and force reload playlists
+    cacheInvalidatePrefix(CacheNS.NeteasePlaylists, '')
+    await checkNeteaseStatus(true)
+  } else {
+    // Logout: clear playlists
+    neteasePlaylists.value = []
+    _cachedNeteasePlaylists = []
   }
 }
 
@@ -482,9 +498,13 @@ async function onNeteaseDataChanged() {
   }
 }
 
-async function checkQqStatus() {
+async function checkQqStatus(force = false) {
   if (!window.electronAPI?.qq) return
   try {
+    if (force) {
+      const { checkLoginStatus } = useQqStatus()
+      await checkLoginStatus(true)
+    }
     const result = await window.electronAPI.qq.getLoginStatus()
     if (result.success && result.data?.isLoggedIn) {
       const list = await cachedFetch(
@@ -495,12 +515,27 @@ async function checkQqStatus() {
           if (!res.success || !res.data) return []
           return res.data.playlists || []
         },
-        { ttlMs: CacheTTL.PLAYLISTS }
+        { ttlMs: CacheTTL.PLAYLISTS, forceRefresh: force }
       )
       qqPlaylists.value = list
+      _cachedQqPlaylists = list
     }
   } catch (e) {
     console.error('[DualDeckHome] QQ status check failed:', e)
+  }
+}
+
+// Handle QQ music login/logout events from other components (UserCapsule, MusicPage)
+async function onQqLoginChanged(e: Event) {
+  const detail = (e as CustomEvent).detail as { loggedIn: boolean } | undefined
+  if (detail?.loggedIn) {
+    // Login: clear cache and force reload playlists
+    cacheInvalidatePrefix(CacheNS.QqPlaylists, '')
+    await checkQqStatus(true)
+  } else {
+    // Logout: clear playlists
+    qqPlaylists.value = []
+    _cachedQqPlaylists = []
   }
 }
 
@@ -983,6 +1018,12 @@ function initDecks() {
     })
   }
 
+  // Reset idle flag so layoutDecks() runs on the next frame even if
+  // scroll===target (cards were just recreated and have no transform yet).
+  // Without this, the idle-skip optimization causes new/changed cards to
+  // remain at their CSS default position (all stacked at left:0,top:0).
+  idleSettled = false
+
   if (!rafId) startLoop()
 }
 
@@ -1305,6 +1346,9 @@ onMounted(() => {
 onMounted(() => {
 // Listen for netease data changes (e.g. user liked a song from search)
 window.addEventListener('beatzfit:neteaseDataChanged', onNeteaseDataChanged)
+// Listen for login/logout events from other components (NeteaseLoginCard, UserCapsule, MusicPage)
+window.addEventListener('beatzfit:neteaseLoginChanged', onNeteaseLoginChanged)
+window.addEventListener('beatzfit:qqLoginChanged', onQqLoginChanged)
 })
 
 // Must use onBeforeUnmount for unregisterStage so the canvas is moved back
@@ -1323,6 +1367,8 @@ onUnmounted(() => {
   window.removeEventListener('pointerdown', onPointerDownTrack)
 window.removeEventListener('pointerup', onPointerUpTrack)
 window.removeEventListener('beatzfit:neteaseDataChanged', onNeteaseDataChanged)
+window.removeEventListener('beatzfit:neteaseLoginChanged', onNeteaseLoginChanged)
+window.removeEventListener('beatzfit:qqLoginChanged', onQqLoginChanged)
 decks.forEach(deck => {
     gsap.killTweensOf(deck)
   })
