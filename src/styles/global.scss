@@ -1,0 +1,815 @@
+:root {
+  // == Backgrounds ==
+  --bg-deep: #050507;
+  --bg-base: #0A0A10;
+  --bg-elevated: #11131A;
+
+  // == Aurora (背景光晕) ==
+  --aurora-mist: rgba(200, 200, 220, 0.12);
+  --aurora-ice: rgba(126, 200, 227, 0.14);
+  --aurora-warm: rgba(201, 169, 110, 0.10);
+
+  // == Glass surfaces ==
+  --glass-bg: rgba(255, 255, 255, 0.07);
+  --glass-bg-hover: rgba(255, 255, 255, 0.11);
+  --glass-bg-active: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.15);
+  --glass-border-light: rgba(255, 255, 255, 0.25);
+  --glass-blur: 24px;
+  --glass-rim-opacity: 0.08;
+
+  // == Liquid Glass Tier System (T0–T5) ==
+  // T1 — Primary Card
+  --lg-primary-blur: 24px;
+  --lg-primary-saturate: 160%;
+  --lg-primary-bg: rgba(255, 255, 255, 0.07);
+  --lg-primary-highlight: rgba(255, 255, 255, 0.12);
+
+  // T2 — Secondary Card
+  --lg-secondary-blur: 18px;
+  --lg-secondary-saturate: 150%;
+  --lg-secondary-bg: rgba(255, 255, 255, 0.05);
+  --lg-secondary-highlight: rgba(255, 255, 255, 0.10);
+
+  // T3 — Floating
+  --lg-floating-blur: 28px;
+  --lg-floating-saturate: 170%;
+  --lg-floating-bg: rgba(255, 255, 255, 0.10);
+  --lg-floating-highlight: rgba(255, 255, 255, 0.15);
+
+  // T4 — Interactive (最强玻璃质感)
+  --lg-interactive-blur: 16px;
+  --lg-interactive-saturate: 180%;
+  --lg-interactive-bg: rgba(255, 255, 255, 0.07);
+  --lg-interactive-highlight: rgba(255, 255, 255, 0.20);
+  // T4 多层背景渐变 — 最强光泽
+  --t4-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.04) 100%),
+    linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.08) 100%),
+    rgba(255, 255, 255, 0.07);
+  --t4-bg-hover:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.20) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.02) 100%),
+    linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.06) 100%),
+    rgba(255, 255, 255, 0.10);
+  --t4-box-shadow:
+    inset 0 1px 0 0.5px rgba(255, 255, 255, 0.20),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.10),
+    0 2px 12px rgba(0, 0, 0, 0.18);
+  --t4-box-shadow-hover:
+    inset 0 1px 0 0.5px rgba(255, 255, 255, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    0 4px 20px rgba(0, 0, 0, 0.22);
+
+  // T5 — Hint
+  --lg-hint-blur: 14px;
+  --lg-hint-saturate: 140%;
+  --lg-hint-bg: rgba(255, 255, 255, 0.09);
+  --lg-hint-highlight: rgba(255, 255, 255, 0.12);
+
+  // == Liquid Glass parameters ==
+  --liquid-blur-card: 0.18;
+  --liquid-blur-button: 0.10;
+  --liquid-blur-panel: 0.22;
+  --liquid-saturation-card: 160;
+  --liquid-saturation-button: 140;
+  --liquid-displacement-card: 36;
+  --liquid-displacement-button: 20;
+  --liquid-aberration-card: 2.5;
+  --liquid-aberration-button: 1.5;
+  --liquid-radius-lg: 24;
+  --liquid-radius-md: 16;
+  --liquid-radius-sm: 10;
+
+  // == Text ==
+  --text-primary: #F5F7FA;
+  --text-secondary: rgba(255, 255, 255, 0.76);
+  --text-tertiary: rgba(255, 255, 255, 0.55);
+
+  // == Accents ==
+  --accent-ice: #7EC8E3;
+  --accent-mist: rgba(255, 255, 255, 0.85);
+  --accent-cyan: #4DD0E1;
+  --accent-warm: #C9A96E;
+  --accent-orange: #E8A87C;
+
+  // == Data chart colors (user-customizable) ==
+  --chart-primary: #fa586a;
+  --chart-primary-rgb: 250, 88, 106;
+  --chart-dark: rgb(125, 4, 11);
+  --chart-dark-rgb: 125, 4, 11;
+  --chart-light: rgb(255, 128, 146);
+  --chart-light-rgb: 255, 128, 146;
+
+  // == Typography ==
+  --font-hero: 'Sora', 'Space Grotesk', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --text-hero: clamp(2.8rem, 6vw, 5.5rem);
+  --text-display: clamp(2.5rem, 5vw, 5rem);
+  --text-h1: clamp(1.75rem, 3vw, 2.5rem);
+  --text-h2: 1.5rem;
+  --text-h3: 1.125rem;
+  --text-body: 0.9375rem;
+  --text-small: 0.8125rem;
+  --text-caption: 0.6875rem;
+
+  // == Crystal Bloom accent system ==
+  --crystal-glow: rgba(126, 200, 227, 0.15);
+  --crystal-spark: rgba(255, 255, 255, 0.08);
+
+  // == Radius ==
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  // == Card System ==
+  --card-radius-primary: 24px;      // 主结构卡片 (LiquidGlass 容器)
+  --card-radius-secondary: 16px;    // 次级卡片 (普通玻璃面板)
+  --card-radius-tertiary: 12px;     // 列表项 / 按钮
+  --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+  --card-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --card-border: 1px solid var(--glass-border);
+  --card-padding: var(--space-lg);
+
+  // == Spacing ==
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  // == Motion ==
+  // Legacy easings (kept for backwards compat)
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  // Spec-aligned unified easing system (§4.1)
+  --ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);   // 标准缓动 — 慢入慢出
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);             // 进场缓动 — 快出慢入
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);              // 出场缓动 — 快入慢出
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);     // 弹性回弹 — 模拟弹簧物理
+  --ease-contextual: cubic-bezier(0.2, 0, 0.2, 1);      // 上下文缩放
+
+  // == Motion durations (§4.2) ==
+  --duration-micro: 150ms;       // 微交互（控件状态）
+  --duration-micro-max: 250ms;
+  --duration-panel: 300ms;       // 小型面板/弹窗
+  --duration-page: 350ms;        // 页面级转场
+  --duration-modal: 400ms;       // 大型模态
+
+  // == Z-index ==
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+
+  // == Window ==
+  --titlebar-height: 40px;
+  --player-bar-height: 80px;
+}
+
+// == Base Reset ==
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  /* transparent: true 窗口下，html/body 的 background 会直接
+     绘制到整个窗口矩形上（包括圆角区域外），导致直角边。
+     将 aurora 背景移到 #app，html/body 保持透明。 */
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  /* 字体清晰度优化 — 严禁任何形式的模糊 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  user-select: none;
+}
+
+@keyframes aurora-drift {
+  0%, 100% {
+    background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+  }
+  50% {
+    background-position: 5% 3%, -3% -2%, 2% -4%, 0% 0%;
+  }
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  /* clip-path as a secondary safeguard — on some Windows builds
+     transparent frameless windows don't clip border-radius reliably
+     with overflow:hidden alone. */
+  clip-path: inset(0 round 16px);
+  /* Create containing block for fixed-position descendants
+     so border-radius + overflow clips them to rounded corners */
+  transform: translateZ(0);
+  /* aurora 背景放在 #app 而非 html/body，确保透明窗口下
+     只有圆角区域内绘制背景，圆角外完全透明。 */
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 15%, var(--aurora-mist) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 85% 80%, var(--aurora-ice) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, var(--aurora-warm) 0%, transparent 50%),
+    var(--bg-deep);
+  /* AuroraBackground WebGL canvas (opaque, z-index:0) covers this entirely.
+     The CSS animation was removed to save per-frame repaint of 4 radial gradients.
+     The static background remains for desktop-lyric mode where WebGL is absent. */
+}
+
+#app::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+// == Glass Mixin Components ==
+// NOTE: 不使用 opacity 动画遮盖 backdrop-filter 初始化。
+// Chromium 在 opacity:0 时会跳过 backdrop-filter 计算，
+// 导致元素变为可见时模糊尚未渲染，产生「先透明→再模糊」的两段闪烁。
+// 改用 will-change 提前提示浏览器准备 backdrop-filter 计算。
+.glass-panel {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  transform: translateZ(0);
+  contain: layout paint;
+}
+
+.glass-panel-hoverable {
+  @extend .glass-panel;
+  transition: background var(--duration-micro) var(--ease-standard),
+              border-color var(--duration-micro) var(--ease-standard),
+              transform var(--duration-micro) var(--ease-standard);
+
+  &:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    transform: translateY(-2px);
+  }
+}
+
+.glass-card {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  backdrop-filter: blur(var(--lg-secondary-blur)) saturate(var(--lg-secondary-saturate));
+  -webkit-backdrop-filter: blur(var(--lg-secondary-blur)) saturate(var(--lg-secondary-saturate));
+  transform: translateZ(0);
+  contain: layout paint;
+  // Spec §3.2.2 — hover state smooth transition with spring press
+  transition: background var(--duration-micro) var(--ease-standard),
+              border-color var(--duration-micro) var(--ease-standard),
+              transform 200ms var(--ease-spring),
+              box-shadow var(--duration-micro) var(--ease-standard);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, transparent 50%),
+    linear-gradient(180deg, transparent 70%, rgba(0, 0, 0, 0.08) 100%),
+    rgba(255, 255, 255, 0.06);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  &:hover {
+    transform: translateY(-2px) translateZ(0);
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, transparent 50%),
+      linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.10) 100%),
+      rgba(255, 255, 255, 0.09);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98) translateZ(0);
+    transition: transform 100ms ease-out;
+  }
+}
+
+// == T4 Interactive Glass Button (最强玻璃质感) ==
+// 全局基础样式 — 提供完整的液态玻璃按钮外观。
+// 通过覆写 --glass-bg / --glass-bg-hover 变量，使 background 自动解析为 T4 多层渐变光泽。
+// 各组件的 scoped .btn-glass 可覆盖布局属性 (padding / font-size / border-radius)。
+.btn-glass {
+  // 覆写玻璃变量 — T4 最强光泽
+  --glass-bg: var(--t4-bg);
+  --glass-bg-hover: var(--t4-bg-hover);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  // 完整玻璃外观 — background + border + backdrop-filter 三件套
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: var(--text-small);
+  backdrop-filter: blur(var(--lg-interactive-blur)) saturate(var(--lg-interactive-saturate));
+  -webkit-backdrop-filter: blur(var(--lg-interactive-blur)) saturate(var(--lg-interactive-saturate));
+  box-shadow: var(--t4-box-shadow);
+  transform: translateZ(0);
+  // Spec §3.2.1 — spring press feedback: quick press, spring-back release
+  transition: background var(--duration-micro) var(--ease-standard),
+              border-color var(--duration-micro) var(--ease-standard),
+              box-shadow var(--duration-micro) var(--ease-standard),
+              transform 200ms var(--ease-spring);
+
+  &:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--t4-box-shadow-hover);
+  }
+
+  &:active {
+    transform: scale(0.97) translateZ(0);
+    transition: transform 100ms ease-out;
+  }
+}
+
+// == Accent variant — 统一玻璃色调 (黑白灰) ==
+// 与 FAB 按钮相同的暗色半透明玻璃背景。
+.btn-glass--accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg);
+  background: rgba(15, 15, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+
+  &:hover {
+    background: rgba(20, 20, 28, 0.8);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+// == Card System (unified) ==
+// 主卡片：搭配 FrostedGlass 子组件使用。本类只提供
+// 圆角/阴影/裁剪容器，毛玻璃效果由 FrostedGlass 提供。
+.card-primary {
+  position: relative;
+  border-radius: var(--card-radius-primary);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+
+// 次级卡片：普通玻璃面板，用于内容区/列表外层/设置分组等。
+// backdrop-filter 在大量元素上开销大，故列表项请用 .card-list-item。
+.card-secondary {
+  position: relative;
+  background: var(--glass-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius-secondary);
+  padding: var(--card-padding);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  transform: translateZ(0);
+  contain: layout paint;
+  transition: background var(--duration-micro) var(--ease-standard),
+              border-color var(--duration-micro) var(--ease-standard),
+              transform var(--duration-micro) var(--ease-standard),
+              box-shadow var(--duration-micro) var(--ease-standard);
+
+  &:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--card-shadow-hover);
+  }
+}
+
+// 列表卡片：轻量级，无 backdrop-filter，用于高频列表项 (曲目/动作/计划)。
+.card-list-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  border-radius: var(--card-radius-tertiary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  // Spec §3.2.2 — smooth hover + press feedback
+  transition: background var(--duration-micro) var(--ease-standard),
+              border-color var(--duration-micro) var(--ease-standard),
+              box-shadow var(--duration-micro) var(--ease-standard),
+              transform 200ms var(--ease-spring);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: var(--glass-border);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: translateX(2px) translateZ(0);
+  }
+
+  &:active {
+    transform: scale(0.98) translateZ(0);
+    transition: transform 100ms ease-out;
+  }
+}
+
+// == Scrollbar ==
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.20);
+  }
+}
+
+// Firefox
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+// ================================================================
+// Unified Interaction Animation System (spec §3.2–3.3)
+// ================================================================
+
+// -- Spring Press Feedback (§3.2.1) --
+// Apply to any clickable element for physical press-then-spring-back.
+// Uses transform: scale() only — GPU-accelerated, no reflow.
+.pressable {
+  transition: transform 100ms ease-out;
+
+  &:active {
+    transform: scale(0.97) translateZ(0);
+    transition: transform 100ms ease-out;
+  }
+
+  // Spring-back on release — cubic-bezier with slight overshoot
+  &:not(:active) {
+    transition: transform 200ms var(--ease-spring);
+  }
+}
+
+// -- Hover Lift (§3.2.2) --
+// Smooth hover transition for cards and interactive containers.
+// Animates background, shadow, and transform simultaneously.
+.hover-lift {
+  transition: background var(--duration-micro) var(--ease-standard),
+              border-color var(--duration-micro) var(--ease-standard),
+              box-shadow var(--duration-micro) var(--ease-standard),
+              transform var(--duration-micro) var(--ease-standard);
+
+  &:hover {
+    transform: translateY(-2px) translateZ(0);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98) translateZ(0);
+    transition: transform 100ms ease-out;
+  }
+}
+
+// -- Filter Chip Press Feedback (§3.2.1) --
+// Applied globally so all filter chips across pages get consistent feedback.
+.filter-chip {
+  transition: background var(--duration-micro) var(--ease-standard),
+              color var(--duration-micro) var(--ease-standard),
+              border-color var(--duration-micro) var(--ease-standard),
+              transform 200ms var(--ease-spring);
+
+  &:active {
+    transform: scale(0.95) translateZ(0);
+    transition: transform 100ms ease-out;
+  }
+}
+
+// -- Stat Card / Plan Card Press Feedback (§3.2.1) --
+// Exclude DataPage 3D stat-cards (transform is JS-driven via rAF)
+.stat-card:not([data-kpi-card]),
+.plan-card,
+.track-item {
+  transition: background var(--duration-micro) var(--ease-standard),
+              border-color var(--duration-micro) var(--ease-standard),
+              box-shadow var(--duration-micro) var(--ease-standard),
+              transform 200ms var(--ease-spring);
+
+  &:active {
+    transform: scale(0.98) translateZ(0);
+    transition: transform 100ms ease-out;
+  }
+}
+
+// ================================================================
+// Page / Modal / Toast / Dropdown 过渡
+// 已迁移至 GSAP JS hooks (src/composables/useGsapTransition.ts)。
+// Vue <Transition :css="false"> 完全由 GSAP 控制，不再需要 CSS 类。
+// =========================================================
+
+// ================================================================
+// Staggered Enter Animation
+// 已迁移至 GSAP stagger (src/composables/useGsapTransition.ts → animateStagger)。
+// 各页面通过 watch(loading) + nextTick 调用 animateStagger()。
+// =========================================================
+
+// ================================================================
+// Modal / Overlay Transitions
+// 已迁移至 GSAP JS hooks (src/composables/useGsapTransition.ts → useModalTransition)。
+// =========================================================
+
+// ================================================================
+// Expand/Collapse Smooth Transition (spec §3.2.4)
+// Uses grid-template-rows: 0fr → 1fr for height animation without
+// reflow jitter. Apply to a wrapper with display: grid.
+// ================================================================
+.expand-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: grid-template-rows var(--duration-micro-max) var(--ease-standard),
+              opacity var(--duration-micro-max) var(--ease-standard),
+              transform var(--duration-micro-max) var(--ease-standard);
+
+  &--open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  > * {
+    overflow: hidden;
+    min-height: 0;
+  }
+}
+
+// ================================================================
+// Toast Slide-in Feedback
+// 已迁移至 GSAP JS hooks (src/composables/useGsapTransition.ts → useToastTransition)。
+// =========================================================
+
+// ================================================================
+// Smooth Spinner
+// 已迁移至 GSAP (src/composables/useGsapTransition.ts → animateSpin)。
+// =========================================================
+
+// ================================================================
+// Reduced Motion — disable all spec animations
+// ================================================================
+@media (prefers-reduced-motion: reduce) {
+  .pressable,
+  .pressable:not(:active),
+  .hover-lift {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+// == Reduced Motion (existing) ==
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html, body {
+    animation: none !important;
+  }
+}
+
+// ================================================================
+// 字体清晰度全局保障 — 确保所有可见文字和 SVG 图标锐利无模糊
+// ================================================================
+
+// SVG 图标使用几何精度渲染, 避免亚像素模糊
+svg {
+  shape-rendering: geometricPrecision;
+}
+
+// 确保文字内容不受 backdrop-filter 影响 — 文字层始终在模糊层之上
+// 且不使用 filter/blur 等可能导致文字模糊的属性
+.glass-panel,
+.glass-card,
+.card-secondary,
+.frosted-glass {
+  // 确保子元素文字和图标在 GPU 合成层中保持锐利
+  & > *:not(.frosted-glass):not(::before):not(::after) {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+// 禁止文字直接应用 filter:blur (防止意外模糊)
+// text-shadow 仅允许用于装饰性大标题, 不用于正文
+
+// == Typography helpers ==
+.text-hero { font-family: var(--font-hero); font-size: var(--text-hero); font-weight: 700; line-height: 1.05; letter-spacing: -0.03em; text-wrap: balance; }
+.text-display { font-family: var(--font-display); font-size: var(--text-display); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+.text-h1 { font-family: var(--font-display); font-size: var(--text-h1); font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; text-wrap: balance; }
+.text-h2 { font-family: var(--font-display); font-size: var(--text-h2); font-weight: 500; line-height: 1.3; text-wrap: balance; }
+.text-h3 { font-family: var(--font-display); font-size: var(--text-h3); font-weight: 500; line-height: 1.4; text-wrap: balance; }
+.text-body { font-family: var(--font-body); font-size: var(--text-body); line-height: 1.6; max-width: 65ch; }
+.text-small { font-family: var(--font-body); font-size: var(--text-small); color: var(--text-secondary); }
+.text-caption { font-family: var(--font-body); font-size: var(--text-caption); color: var(--text-tertiary); letter-spacing: 0.02em; }
+
+// == Crystal Bloom decorative gradient text ==
+.text-crystal-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, var(--accent-ice) 50%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+// == Skeleton → Content transition wrapper ==
+// Usage: wrap content in .content-reveal — GSAP animateContentEntrance animates it
+.content-reveal {
+}
+
+// == Fullscreen / Maximized Mode ==
+// When the app enters OS-level fullscreen OR is maximised, the transparent
+// window's border-radius would leave transparent gaps at the four corners.
+// Removing border-radius + clip-path ensures the app fills the entire screen.
+body.is-fullscreen,
+body.is-maximized {
+  #app,
+  .app-shell {
+    border-radius: 0 !important;
+    clip-path: none !important;
+  }
+}
+
+// == Scroll-based hide/show for floating elements ==
+// PlayerBar now manages its own visibility via is-visible class.
+// This rule only affects other bottom floating elements if needed in the future.
+body.is-scrolled-down:not(.immersive-mode) {
+  // PlayerBar visibility is now controlled by its own hover-trigger system
+}
+
+// == Immersive Mode ==
+// When body.immersive-mode is active, all player-page UI chrome hides.
+// Mouse movement adds body.immersive-visible to reveal them temporarily.
+body.immersive-mode {
+  .stage-back,
+  .preset-floater,
+  .interaction-hint,
+  .titlebar {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 400ms var(--ease-standard),
+                transform 400ms var(--ease-standard);
+  }
+
+  &.immersive-visible {
+    .stage-back,
+    .preset-floater,
+    .interaction-hint,
+    .titlebar {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+  }
+}
+
+// ================================================================
+// Skeleton Shimmer Loading System
+// Grayscale-only palette (light gray / white / black)
+// ================================================================
+
+// Base skeleton surface — grayscale gradient with shimmer sweep
+// Shimmer 动画由 GSAP 驱动 (animateShimmerAll)，通过 CSS 自定义属性 --shimmer-pos 控制
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+  background-color: rgba(255, 255, 255, 0.04);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.02) 30%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.02) 70%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    background-position: var(--shimmer-pos, -200%) 0;
+    pointer-events: none;
+  }
+}
+
+// Utility shapes
+.skeleton-line {
+  @extend .skeleton;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.skeleton-line--sm { height: 10px; }
+.skeleton-line--md { height: 14px; }
+.skeleton-line--lg { height: 18px; border-radius: 6px; }
+
+.skeleton-block {
+  @extend .skeleton;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-circle {
+  @extend .skeleton;
+  border-radius: 50%;
+}
+
+.skeleton-card {
+  @extend .skeleton;
+  border-radius: var(--radius-lg);
+}
+
+// Content fade-in & staggered fade-in
+// 已迁移至 GSAP (src/composables/useGsapTransition.ts → animateContentEntrance / animateStagger)。
+//
+// Respect reduced-motion preference
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    background-position: 0 0;
+  }
+  // Globally reduce motion: disable CSS animations/transitions
+  // GSAP animations are handled separately via gsap.matchMedia() in JS.
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// ── Global keyboard focus indicator ──
+// Provides a visible focus ring for keyboard users (Tab navigation).
+// Mouse clicks don't trigger :focus-visible, so this doesn't affect
+// mouse users' visual experience.
+:focus-visible {
+  outline: 2px solid var(--accent-mist, rgba(255, 255, 255, 0.4));
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+// Remove default outline only when not keyboard-focused (mouse click)
+:focus:not(:focus-visible) {
+  outline: none;
+}

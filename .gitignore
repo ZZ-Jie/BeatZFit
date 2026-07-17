@@ -1,0 +1,53 @@
+# ── Dependencies ──
+node_modules/
+
+# ── Build output ──
+dist/
+dist-electron/
+release/
+docs/
+scripts/
+# ── Database (runtime) ──
+*.db
+*.db-journal
+*.db-wal
+
+# ── OS files ──
+.DS_Store
+Thumbs.db
+
+# ── Logs ──
+*.log
+
+# ── IDE / Editor ──
+.vscode/
+.idea/
+.trae/
+.workbuddy/
+.catpaw/
+
+# ── Internal design / prototypes (not part of the app) ──
+3d_Design/
+launch-animation-preview/
+音乐播放器3D效果开发方案.md
+gym-action-library.html
+music-layout-sketch-v3.svg
+# ── Internal development specs (root-level) ──
+00_BeatZ-Fit-Electron开发Spec.md
+01_BeatZ-Fit设计风格.md
+02_调研报告-音乐健身App技术方案.md
+03_音乐播放器核心功能文档.md
+04_ExerciseDB API项目使用文档.md
+
+# ── Font binaries (optional local fonts; app uses Google Fonts CDN) ──
+*.otf
+*.ttf
+public/fonts/*.zip
+
+# ── Stale build artifacts in public/ ──
+public/assets/shader-worker-*.js
+
+# ── Environment files ──
+.env
+.env.local
+.env.*.local
