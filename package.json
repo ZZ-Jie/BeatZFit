@@ -94,6 +94,7 @@
       "dist-electron/**/*",
       "resources/**/*"
     ],
+    "artifactName": "BeatZ-Fit-Setup-${version}.${ext}",
     "publish": {
       "provider": "github",
       "owner": "ZZ-Jie",
