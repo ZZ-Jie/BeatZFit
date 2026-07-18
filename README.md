@@ -9,7 +9,7 @@ BeatZ Fit 将 **音乐播放器**、**3D 音频可视化** 与 **健身训练管
 - **3D 唱片架音乐库** — 拖拽、缩放、点击交互的 3D 唱片墙，支持本地音乐 / 网易云音乐 / QQ音乐
 - **音频驱动 3D 可视化** — 6 种预设主题，实时跟随音频频谱：
   - **共鸣 Resonance** — 几何粒子随音乐律动，Curl Noise 有机运动，可拖拽缩放
-  - **棱镜 Prism** — SDF 圆角矩形透镜畸变，专辑封面填充，可拖拽缩放
+  - **棱镜 Prism** — 圆角矩形透镜畸变，专辑封面填充，可拖拽缩放
   - **核璇 Nucleus** — 3000 胶囊体中心核，玻璃球环绕，可拖拽缩放
   - **穹璇 Orbis** — 封面切割成穹顶，跟随节奏震动
   - **星屑 Étoile** — 歌曲封面粒子化重构，可拖拽旋转、滚轮缩放
@@ -19,7 +19,7 @@ BeatZ Fit 将 **音乐播放器**、**3D 音频可视化** 与 **健身训练管
 - **训练数据看板** — 3D 深度弧 KPI 卡片 + 柱状图 / 环形图 / 趋势线 / 热力图
 - **桌面歌词** — 独立透明窗口，鼠标穿透 + 悬浮显示
 - **DIY 个性化** — 3D 视觉参数、歌词样式、极光色彩实时调节
-- **交互音效系统** — 5 种音效（detent / airBloom / retract / confirm / hover）贯穿全应用
+- **交互音效系统** — 4 种音效（detent / airBloom / retract / confirm ）贯穿全应用
 
 ## 🛠 技术栈
 
@@ -88,9 +88,9 @@ npm test
 
 不想配置开发环境、只想直接用的普通用户，**推荐通过蓝奏云下载**（无需登录、无需 Git，点链接 + 输密码即可）：
 
-- **蓝奏云（推荐）** — https://wwbit.lanzoul.com/iqwvz3x5zlib ｜ 提取码：`f9e9`
-- **GitCode Releases** — https://gitcode.com/Pluto_14/BeatZFit/releases/v1.0.0
-- **Gitee Releases** — https://gitee.com/ZZ--Jie/BeatZFit/releases/tag/v1.0.0
+- [**蓝奏云（推荐）**](https://wwbit.lanzoul.com/iqwvz3x5zlib) ｜ 提取码：`f9e9`
+- [**GitCode Releases**](https://gitcode.com/Pluto_14/BeatZFit/releases/v1.0.0)
+- [**Gitee Releases**](https://gitee.com/ZZ--Jie/BeatZFit/releases/tag/v1.0.0)
 
 > 开发者可 clone 本仓库自行 `npm install && npm run build`；各平台 Release 均提供 Windows NSIS 安装包。
 
