@@ -25,7 +25,7 @@ declare global {
         updateLastPlayed: (trackId: string) => Promise<{ success: boolean; error?: string }>
       }
       exercise: {
-        syncFromAPI: () => Promise<{ success: boolean; data?: { total: number; failed: number; failedNames: string[] } }>
+        syncFromAPI: () => Promise<{ success: boolean; data?: { total: number; failed: number; failedNames: string[] }; error?: string }>
         autoSync: () => Promise<{ success: boolean; data?: { total: number; failed: number; failedNames: string[] } | { skipped: boolean } }>
         getSyncStatus: () => Promise<{ success: boolean; data?: { status: 'pending' | 'completed' | 'partial' | 'none' } }>
         list: (filter?: any) => Promise<{ success: boolean; data?: { exercises: any[] } }>
@@ -78,7 +78,7 @@ declare global {
         getLoginStatus: () => Promise<{ success: boolean; data?: { isLoggedIn: boolean; userInfo: import('./qq.d').QqUserInfo | null } }>
         getUserPlaylists: () => Promise<{ success: boolean; data?: { playlists: import('./qq.d').QqPlaylist[] } }>
         getPlaylistDetail: (id: string) => Promise<{ success: boolean; data?: { tracks: import('./qq.d').QqSong[] } }>
-        getSongUrl: (songmid: string, quality?: string) => Promise<{ success: boolean; data?: { url: import('./qq.d').QqSongUrl } }>
+        getSongUrl: (songmid: string, quality?: string, strMediaMid?: string, isVip?: boolean) => Promise<{ success: boolean; data?: { url: import('./qq.d').QqSongUrl } }>
         getLyric: (songmid: string) => Promise<{ success: boolean; data?: { lyric: import('./qq.d').QqLyric } }>
         search: (keywords: string, limit?: number) => Promise<{ success: boolean; data?: { songs: import('./qq.d').QqSearchSong[] } }>
         logout: () => Promise<{ success: boolean }>
@@ -86,7 +86,7 @@ declare global {
       shortcuts: {
         get: () => Promise<{ success: boolean; data?: { shortcuts: any[]; defaults: any[] } }>
         update: (action: string, accelerator: string) => Promise<{ success: boolean; data?: { shortcuts: any[] }; error?: string }>
-        reset: () => Promise<{ success: boolean; data?: { shortcuts: any[] } }>
+        reset: () => Promise<{ success: boolean; data?: { shortcuts: any[] }; error?: string }>
       }
       playlist: {
         create: (data: { name: string; description?: string }) => Promise<{ success: boolean; data?: { playlist: any }; error?: string }>

@@ -34,7 +34,7 @@ export function useNeteaseLikes() {
 
     _loadPromise = (async () => {
       try {
-        const result = await window.electronAPI.netease.getLikelist(userInfo.value.userId)
+        const result = await window.electronAPI!.netease.getLikelist(userInfo.value!.userId)
         if (result.success && result.data?.ids) {
           likedSongIds.value = new Set(result.data.ids)
         }
