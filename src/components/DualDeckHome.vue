@@ -25,6 +25,10 @@
             class="card"
             :data-card-index="i"
             @click="onCardClick('fitness', i)"
+            @pointerdown="onCardPointerDown($event, 'fitness', i)"
+            @pointerup="onCardPointerUp"
+            @pointerleave="onCardPointerUp"
+            @pointercancel="onCardPointerUp"
           >
             <div class="card-inner" :style="{ '--c': card.color }">
               <div class="ci-cover" v-if="card.coverUrl">
@@ -146,11 +150,33 @@
       @close="detailExercise = null"
       @add-to-plan="onAddToPlanFromDetail"
     />
+
+    <!-- 计划长按操作菜单 (Teleport to body: 确保在最上层) -->
+    <Teleport to="body">
+      <Transition :css="false" @enter="onCardMenuEnter" @leave="onCardMenuLeave">
+        <div v-if="cardMenu.visible" class="card-menu-overlay" @click.self="closeCardMenu">
+          <div class="card-menu-panel" :style="cardMenuStyle">
+            <FrostedGlass :corner-radius="16" variant="primary" />
+            <div class="card-menu-content">
+              <div class="card-menu-title">{{ cardMenu.planName }}</div>
+              <button class="card-menu-item" @click="onCardMenuEdit">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11.5 2.5L13.5 4.5L5 13H3V11L11.5 2.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+                <span>编辑计划</span>
+              </button>
+              <button class="card-menu-item card-menu-item--danger" @click="onCardMenuDelete">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 4H13M6.5 7V11M9.5 7V11M4 4L4.5 13H11.5L12 4M6 4V2.5H10V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>删除计划</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFitnessStore } from '@/stores/fitness'
 import { useMusicStore } from '@/stores/music'
@@ -169,6 +195,9 @@ import { useQqStatus } from '@/composables/useQqStatus'
 import { useNeteaseLikes } from '@/composables/useNeteaseLikes'
 import { useImmersivePrefs, savePrefs } from '@/composables/useImmersivePrefs'
 import { useSfx } from '@/composables/useSfx'
+import { useGlobalToast } from '@/composables/useGlobalToast'
+import { useModalTransition } from '@/composables/useGsapTransition'
+import FrostedGlass from '@/components/FrostedGlass.vue'
 import SongCoverflow from '@/components/SongCoverflow.vue'
 import ExerciseCoverflow from '@/components/ExerciseCoverflow.vue'
 import ExerciseDetailModal from '@/components/ExerciseDetailModal.vue'
@@ -192,6 +221,25 @@ const {
 // ── Immersive prefs (hide cards + labels) ──
 const { prefs: immersivePrefs } = useImmersivePrefs()
 const sfx = useSfx()
+const toast = useGlobalToast()
+const cardMenuTransition = useModalTransition()
+const onCardMenuEnter = cardMenuTransition.onEnter
+const onCardMenuLeave = cardMenuTransition.onLeave
+
+// ── 长按操作菜单 ──
+const cardMenu = reactive({
+  visible: false,
+  planId: '',
+  planName: '',
+  x: 0,
+  y: 0,
+})
+const cardMenuStyle = computed(() => ({
+  left: `${cardMenu.x}px`,
+  top: `${cardMenu.y}px`,
+}))
+let longPressTimer: ReturnType<typeof setTimeout> | null = null
+let longPressTriggered = false
 
 // ── Stage ref ──
 // 完全 3D 模式: 始终激活, 无 idle/engaged 切换
@@ -552,11 +600,81 @@ let pointerDownTime = 0
 let lastPointerUpX = 0
 let lastPointerUpY = 0
 
+// ── 长按检测 (仅 fitness 卡片) ──
+function onCardPointerDown(e: PointerEvent, type: 'fitness' | 'music', index: number) {
+  if (type !== 'fitness') return
+  const card = fitnessCards.value[index]
+  if (!card || !card.planId) return // 空状态卡片不触发长按
+
+  longPressTriggered = false
+  if (longPressTimer) clearTimeout(longPressTimer)
+  longPressTimer = setTimeout(() => {
+    longPressTriggered = true
+    sfx.airBloom()
+    // 计算菜单位置（点击位置附近，但确保不超出视口）
+    const menuW = 200
+    const menuH = 160
+    const x = Math.min(e.clientX, window.innerWidth - menuW - 16)
+    const y = Math.min(e.clientY, window.innerHeight - menuH - 16)
+    cardMenu.planId = card.planId!
+    cardMenu.planName = card.title
+    cardMenu.x = x
+    cardMenu.y = y
+    cardMenu.visible = true
+  }, 500)
+}
+
+function onCardPointerUp() {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer)
+    longPressTimer = null
+  }
+}
+
+function closeCardMenu() {
+  sfx.retract()
+  cardMenu.visible = false
+}
+
+function onCardMenuEdit() {
+  sfx.confirm()
+  const planId = cardMenu.planId
+  cardMenu.visible = false
+  fitnessStore.setEditingPlan(planId)
+  router.push('/plan/build')
+}
+
+async function onCardMenuDelete() {
+  const planId = cardMenu.planId
+  const planName = cardMenu.planName
+  cardMenu.visible = false
+  sfx.airBloom()
+  const ok = await toast.confirm({
+    title: '删除训练计划',
+    message: `确定要删除「${planName}」吗？此操作不可恢复。`,
+    confirmText: '删除',
+    danger: true,
+  })
+  if (!ok) return
+  const result = await fitnessStore.deletePlan(planId)
+  if (result.success) {
+    sfx.confirm()
+    toast.success('计划已删除')
+  } else {
+    toast.error('删除失败')
+  }
+}
+
 function onCardClick(type: 'fitness' | 'music', index: number) {
-  const dx = Math.abs(pointerDownX - lastPointerUpX)
-  const dy = Math.abs(pointerDownY - lastPointerUpY)
-  const dt = performance.now() - pointerDownTime
-  if (dx > 8 || dy > 8 || dt > 500) return
+const dx = Math.abs(pointerDownX - lastPointerUpX)
+const dy = Math.abs(pointerDownY - lastPointerUpY)
+const dt = performance.now() - pointerDownTime
+if (dx > 8 || dy > 8 || dt > 500) return
+// 长按已触发菜单 → 跳过本次点击
+if (longPressTriggered) {
+  longPressTriggered = false
+  return
+}
 
   const deckEl = document.querySelector(`[data-deck="${type}"]`) as HTMLElement | null
   if (!deckEl) return
@@ -1358,12 +1476,16 @@ unregisterStage('home')
 })
 
 onUnmounted(() => {
-  disposed = true
-  cancelAnimationFrame(rafId)
-  rafId = 0
-  detachInteraction()
-  onTransformChange(null)
-  window.removeEventListener('wheel', onWheel, { capture: true } as EventListenerOptions)
+disposed = true
+cancelAnimationFrame(rafId)
+rafId = 0
+detachInteraction()
+onTransformChange(null)
+if (longPressTimer) {
+clearTimeout(longPressTimer)
+longPressTimer = null
+}
+window.removeEventListener('wheel', onWheel, { capture: true } as EventListenerOptions)
   window.removeEventListener('pointerdown', onPointerDownTrack)
 window.removeEventListener('pointerup', onPointerUpTrack)
 window.removeEventListener('beatzfit:neteaseDataChanged', onNeteaseDataChanged)
@@ -1751,4 +1873,61 @@ color: rgba(234, 242, 248, 0.5); // 本地: 浅灰色
   letter-spacing: 0.05em;
 }
 @keyframes coverflow-spin { to { transform: rotate(360deg); } }
+
+/* ── 长按操作菜单 ── */
+.card-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 400);
+  background: transparent;
+  pointer-events: auto;
+}
+
+.card-menu-panel {
+  position: fixed;
+  width: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.card-menu-content {
+  position: relative;
+  z-index: 1;
+  padding: 8px;
+}
+
+.card-menu-title {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  padding: 8px 12px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--text-body);
+  cursor: pointer;
+  transition: all 120ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+  }
+
+  &--danger:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: rgba(248, 113, 113, 0.95);
+  }
+}
 </style>

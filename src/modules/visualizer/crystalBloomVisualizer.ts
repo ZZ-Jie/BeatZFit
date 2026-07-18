@@ -23,6 +23,7 @@ import * as THREE from 'three'
 import gsap from 'gsap'
 import type { AudioSpectrumData } from './audioAnalyzer'
 import { AudioAnimationController } from './audioAnimationLayer'
+import { sampleCoverPalette } from '@/utils/colorSampler'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -573,9 +574,36 @@ export class CrystalBloomVisualizer {
   // Lifecycle
   // ---------------------------------------------------------------------------
 
-  async loadCover(_url: string): Promise<boolean> {
-    // No cover loading for this preset — colors are fixed to original grays.
-    return true
+  // Cover color extraction token — prevents race conditions when setCover is
+  // called multiple times in quick succession (e.g. rapid track switching).
+  private loadToken = 0
+
+  async loadCover(url: string): Promise<boolean> {
+    if (this.disposed) return false
+    const myToken = ++this.loadToken
+
+    if (!url) {
+      // 无封面 — 恢复默认灰色
+      ;(this.heroUniforms.u_color.value as THREE.Color).set(COLOR_CAPSULE)
+      return true
+    }
+
+    try {
+      // 复用 colorSampler.ts 的 k-means 取色（5 簇加权混合 + 饱和度/亮度增强）
+      const palette = await sampleCoverPalette(url)
+      // 丢弃过期结果（切歌时多次调用 loadCover）
+      if (myToken !== this.loadToken || this.disposed) return false
+
+      // 使用 vivid 颜色：k-means 前几簇按饱和度×亮度加权混合 + boostColor 增强
+      // 纯黑/灰色专辑回退为白色（colorSampler 内部处理）
+      const colorHex = palette.vivid || palette.primary || COLOR_CAPSULE
+      ;(this.heroUniforms.u_color.value as THREE.Color).set(colorHex)
+      return true
+    } catch (e) {
+      if (myToken !== this.loadToken) return false
+      console.warn('[CrystalBloom] Cover color extraction failed:', e)
+      return false
+    }
   }
 
   update(data: AudioSpectrumData): void {

@@ -1,5 +1,6 @@
 <template>
-  <!-- ── 普通 Toast 堆栈 (中部偏下) ── -->
+  <Teleport to="body">
+    <!-- ── 普通 Toast 堆栈 (中部偏下) ── -->
   <div class="gt-container gt-container--bottom">
     <Transition
       v-for="t in bottomToasts"
@@ -66,7 +67,8 @@
         </div>
       </div>
     </div>
-  </Transition>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -193,7 +195,7 @@ function onConfirmResolve(value: boolean) {
 .gt-confirm-overlay {
   position: fixed;
   inset: 0;
-  z-index: var(--z-modal, 400);
+  z-index: calc(var(--z-modal, 400) + 100);
   display: flex;
   align-items: center;
   justify-content: center;

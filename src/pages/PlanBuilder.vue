@@ -182,7 +182,11 @@
         <div class="modal-content plan-success">
           <FrostedGlass :corner-radius="24" variant="floating" />
           <div class="modal-content-content">
-            <div class="success-icon">&#10003;</div>
+            <div class="success-icon">
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+<path d="M7 16.5L13 22.5L25 9.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+</div>
             <h2 class="text-h2">{{ isEditMode ? '计划保存成功' : '计划创建成功' }}</h2>
             <p class="text-small" style="color: var(--text-tertiary); margin: var(--space-sm) 0 var(--space-lg);">
               {{ createdPlan.name }} · {{ createdPlan.exercises.length }} 个动作
@@ -1047,12 +1051,13 @@ function startCreatedPlan() {
   &:disabled { opacity: 0.4; cursor: default; }
 
   &--accent {
-    background: rgba(250, 88, 106, 0.12);
-    border-color: rgba(250, 88, 106, 0.2);
-    color: var(--accent-mist);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
 
     &:hover:not(:disabled) {
-      background: rgba(250, 88, 106, 0.2);
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.22);
     }
   }
 }
@@ -1135,14 +1140,15 @@ function startCreatedPlan() {
 .success-icon {
   width: 64px; height: 64px;
   border-radius: 50%;
-  background: rgba(77, 208, 225, 0.12);
-  border: 1px solid rgba(77, 208, 225, 0.25);
-  color: #4DD0E1;
-  font-size: 2rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto var(--space-lg);
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .success-actions {

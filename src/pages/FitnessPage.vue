@@ -91,6 +91,11 @@
                 : isRefreshing ? '...' : '刷新' }}
           </button>
           <button class="shelf-action-btn" @click="goToPlanBuilder">创建计划</button>
+<button class="shelf-action-btn" :class="{ 'shelf-action-btn--active': showPlanManager }" @click="togglePlanManager" v-if="fitnessStore.plans.length > 0">
+<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+管理计划
+<span class="filter-badge" v-if="fitnessStore.plans.length > 0">{{ fitnessStore.plans.length }}</span>
+</button>
 
           <!-- 紧凑分页控件 (并入 header 行) -->
           <div class="shelf-pagination" v-if="!showEmptyState && filteredExercises.length > 0">
@@ -194,6 +199,42 @@
       />
     </Teleport>
 
+    <!-- 计划管理浮层 (Teleport to body: 确保在最上层) -->
+    <Teleport to="body">
+      <Transition :css="false" @enter="onPlanMgrEnter" @leave="onPlanMgrLeave">
+        <div v-if="showPlanManager" class="plan-mgr-overlay" @click.self="showPlanManager = false">
+          <div class="plan-mgr-panel">
+            <FrostedGlass :corner-radius="20" variant="primary" />
+            <div class="plan-mgr-content">
+              <div class="plan-mgr-header">
+                <h3 class="plan-mgr-title">管理训练计划</h3>
+                <button class="plan-mgr-close" @click="showPlanManager = false">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3L11 11M11 3L3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
+              </div>
+              <div class="plan-mgr-list" v-if="fitnessStore.plans.length > 0">
+                <div v-for="plan in fitnessStore.plans" :key="plan.id" class="plan-mgr-item">
+                  <div class="plan-mgr-item-info">
+                    <div class="plan-mgr-item-name">{{ plan.name }}</div>
+                    <div class="plan-mgr-item-sub">{{ plan.bodyPart || '全身' }} · {{ plan.exercises.length }} 个动作</div>
+                  </div>
+                  <div class="plan-mgr-item-actions">
+                    <button class="plan-mgr-btn plan-mgr-btn--edit" @click="editPlan(plan.id)" title="编辑">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M11.5 2.5L13.5 4.5L5 13H3V11L11.5 2.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button class="plan-mgr-btn plan-mgr-btn--delete" @click="confirmDeletePlan(plan.id, plan.name)" title="删除">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4H13M6.5 7V11M9.5 7V11M4 4L4.5 13H11.5L12 4M6 4V2.5H10V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="plan-mgr-empty">暂无训练计划</div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
   </div>
 </template>
 
@@ -206,7 +247,7 @@ import EmptyState from '@/components/EmptyState.vue'
 import ExerciseDetailModal from '@/components/ExerciseDetailModal.vue'
 import { toExerciseMediaUrl } from '@/utils/exerciseMedia'
 import type { Exercise } from '@/types'
-import { animateSpin } from '@/composables/useGsapTransition'
+import { animateSpin, useModalTransition } from '@/composables/useGsapTransition'
 import { useSpiralCards } from '@/composables/useSpiralCards'
 import { useGlobalVisualizer } from '@/composables/useGlobalVisualizer'
 import { useGlobalToast } from '@/composables/useGlobalToast'
@@ -573,8 +614,48 @@ async function openDetail(ex: Exercise) {
 }
 
 function goToPlanBuilder() {
+sfx.confirm()
+router.push('/plan/build')
+}
+
+// ── 计划管理浮层 ──
+const showPlanManager = ref(false)
+const planMgrTransition = useModalTransition()
+const onPlanMgrEnter = planMgrTransition.onEnter
+const onPlanMgrLeave = planMgrTransition.onLeave
+
+function togglePlanManager() {
+  sfx.detent()
+  showPlanManager.value = !showPlanManager.value
+}
+
+function editPlan(planId: string) {
   sfx.confirm()
+  showPlanManager.value = false
+  fitnessStore.setEditingPlan(planId)
   router.push('/plan/build')
+}
+
+async function confirmDeletePlan(planId: string, planName: string) {
+  sfx.airBloom()
+  const ok = await toast.confirm({
+    title: '删除训练计划',
+    message: `确定要删除「${planName}」吗？此操作不可恢复。`,
+    confirmText: '删除',
+    danger: true,
+  })
+  if (!ok) return
+  const result = await fitnessStore.deletePlan(planId)
+  if (result.success) {
+    sfx.confirm()
+    toast.success('计划已删除')
+    // 如果没有计划了，关闭浮层
+    if (fitnessStore.plans.length === 0) {
+      showPlanManager.value = false
+    }
+  } else {
+    toast.error('删除失败')
+  }
 }
 
 function toggleFilter() {
@@ -1205,4 +1286,149 @@ height: 100% !important;
   letter-spacing: 0.05em;
 }
 @keyframes spiral-spin { to { transform: rotate(360deg); } }
+
+/* ── 计划管理浮层 ── */
+.plan-mgr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.plan-mgr-panel {
+  position: relative;
+  width: min(440px, 92vw);
+  max-height: 70vh;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.plan-mgr-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh;
+}
+
+.plan-mgr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
+  flex-shrink: 0;
+}
+
+.plan-mgr-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.plan-mgr-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+.plan-mgr-list {
+  overflow-y: auto;
+  padding: 0 16px 16px;
+  flex: 1;
+}
+
+.plan-mgr-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 8px;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.plan-mgr-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.plan-mgr-item-name {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plan-mgr-item-sub {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.plan-mgr-item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.plan-mgr-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &--edit:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  &--delete:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: rgba(248, 113, 113, 0.95);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+}
+
+.plan-mgr-empty {
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--text-body);
+}
 </style>
