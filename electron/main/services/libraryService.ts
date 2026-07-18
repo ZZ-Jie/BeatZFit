@@ -119,6 +119,23 @@ export class LibraryService {
           [contentHash]
         )
         if (existingByContent) {
+          // If the existing track has no cover, try to re-extract it
+          // (covers a rare edge case where a previous upload failed to
+          //  extract the cover image, leaving cover_path NULL).
+          if (!existingByContent.cover_path || !existsSync(existingByContent.cover_path)) {
+            try {
+              const hash = createHash('md5').update(filePath).digest('hex').slice(0, 12)
+              const mm = await this.tryParseMetadata(filePath, hash)
+              if (mm.coverPath) {
+                exec('UPDATE tracks SET cover_path = ? WHERE id = ?', [mm.coverPath, existingByContent.id])
+                existingByContent.cover_path = mm.coverPath
+                persistDatabase()
+                console.log('[Library] Re-extracted cover for existing track:', existingByContent.id)
+              }
+            } catch (e) {
+              console.warn('[Library] Failed to re-extract cover for duplicate:', e)
+            }
+          }
           console.log('[Library] Skipping duplicate (same content, different name):', filePath,
             '→ linked to existing track:', existingByContent.id)
           duplicates.push(existingByContent)

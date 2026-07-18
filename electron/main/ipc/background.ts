@@ -1,13 +1,12 @@
-import { ipcMain, dialog, app } from 'electron'
-import { existsSync, mkdirSync, copyFileSync, statSync, unlinkSync } from 'fs'
+import { ipcMain, dialog, app, nativeImage } from 'electron'
+import { existsSync, mkdirSync, copyFileSync, statSync, unlinkSync, writeFileSync } from 'fs'
 import { join, extname, basename } from 'path'
-import sharp from 'sharp'
 import { SettingsService } from '../services/settingsService'
 
 const ALLOWED_EXTS = ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif']
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 const HISTORY_DIR = 'backgrounds/history'
-const CURRENT_BG = 'backgrounds/current-bg.webp'
+const CURRENT_BG = 'backgrounds/current-bg.jpg'
 const SETTINGS_KEY_MODE = 'background.mode'
 const SETTINGS_KEY_PATH = 'background.imagePath'
 const SETTINGS_KEY_CURRENT_ID = 'background.currentId'
@@ -47,39 +46,52 @@ function saveHistory(history: HistoryItem[]) {
   service.set(SETTINGS_KEY_HISTORY, JSON.stringify(history.slice(-20))) // 最多保留 20 条
 }
 
+/**
+ * 用 Electron 内置 nativeImage 处理图片：限制最大边长并输出 JPEG buffer
+ * 替代 sharp，无需打包 libvips 原生库（节省 ~18MB）
+ */
+function imageToJPEG(inputPath: string, quality: number, maxDimension = 2560): Buffer {
+  const img = nativeImage.createFromPath(inputPath)
+  if (img.isEmpty()) throw new Error('无法读取图片文件')
+
+  const { width, height } = img.getSize()
+  let resized = img
+  if (width > maxDimension || height > maxDimension) {
+    const scale = Math.min(maxDimension / width, maxDimension / height)
+    resized = img.resize({ width: Math.round(width * scale), height: Math.round(height * scale) })
+  }
+
+  return resized.toJPEG(quality)
+}
+
 async function compressImage(inputPath: string, outputPath: string) {
-  // 第一轮：限制最大边长并转 WebP quality 85
   let quality = 85
-  let pipeline = sharp(inputPath).rotate() // 保留 EXIF 方向
-  const metadata = await pipeline.clone().metadata()
   const maxDimension = 2560
 
-  if (metadata.width && metadata.height && (metadata.width > maxDimension || metadata.height > maxDimension)) {
-    pipeline = pipeline.resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
-  }
-
-  await pipeline.webp({ quality, effort: 4 }).toFile(outputPath)
+  let buffer = imageToJPEG(inputPath, quality, maxDimension)
 
   // 若仍超限，逐步降低质量直到 70%（视觉可接受下限）
-  while (statSync(outputPath).size > MAX_SIZE && quality > 70) {
+  while (buffer.length > MAX_SIZE && quality > 70) {
     quality -= 5
-    await sharp(inputPath)
-      .rotate()
-      .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
-      .webp({ quality, effort: 6 })
-      .toFile(outputPath)
+    buffer = imageToJPEG(inputPath, quality, maxDimension)
   }
 
-  if (statSync(outputPath).size > MAX_SIZE) {
+  if (buffer.length > MAX_SIZE) {
     throw new Error('图片无法压缩到 5MB 以内')
   }
+
+  writeFileSync(outputPath, buffer)
 }
 
 async function createThumbnail(imagePath: string, outputPath: string) {
-  await sharp(imagePath)
-    .resize(200, 200, { fit: 'cover' })
-    .webp({ quality: 70 })
-    .toFile(outputPath)
+  const img = nativeImage.createFromPath(imagePath)
+  if (img.isEmpty()) throw new Error('无法读取缩略图源图')
+
+  const { width, height } = img.getSize()
+  // 缩放到 200px 短边，保持宽高比
+  const scale = Math.min(200 / width, 200 / height)
+  const resized = img.resize({ width: Math.round(width * scale), height: Math.round(height * scale) })
+  writeFileSync(outputPath, resized.toJPEG(70))
 }
 
 function resetCurrentBackground(service: InstanceType<typeof SettingsService>) {
@@ -118,15 +130,15 @@ export function registerBackgroundIPC() {
       ensureDir(historyDir)
 
       const id = Date.now().toString()
-      const historyPath = join(historyDir, `${id}.webp`)
-      const thumbPath = join(historyDir, `${id}-thumb.webp`)
+      const historyPath = join(historyDir, `${id}.jpg`)
+      const thumbPath = join(historyDir, `${id}-thumb.jpg`)
 
       const stats = statSync(sourcePath)
       if (stats.size > MAX_SIZE) {
         await compressImage(sourcePath, historyPath)
       } else {
-        // 小图也统一转 WebP，避免格式混乱
-        await sharp(sourcePath).rotate().webp({ quality: 90, effort: 4 }).toFile(historyPath)
+        // 小图也统一转 JPEG，避免格式混乱
+        writeFileSync(historyPath, imageToJPEG(sourcePath, 90))
       }
 
       await createThumbnail(historyPath, thumbPath)
