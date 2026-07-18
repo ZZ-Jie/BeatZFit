@@ -76,7 +76,7 @@ npm run dev
 npm run build
 ```
 
-构建产物输出到 `release/` 目录，生成 NSIS 安装程序（`BeatZ Fit Setup x.y.z.exe`）。安装程序默认安装到 `D:\BeatZ Fit`，应用数据存储在 `D:\BeatZ Fit\Data`，避免占用 C 盘空间。卸载时会询问是否同时删除应用数据。
+构建产物输出到 `release/` 目录，生成 NSIS 安装程序（`BeatZ Fit Setup x.y.z.exe`）。安装程序默认安装到 `D:\BeatZ Fit`，应用数据存储在 `D:\BeatZ Fit\Data`。
 
 ### 测试
 
@@ -86,7 +86,7 @@ npm test
 
 ## 📥 下载
 
-不想配置开发环境、只想直接用的普通用户，**推荐通过蓝奏云下载**（无需登录、无需 Git，点链接 + 输密码即可）：
+不想配置开发环境、普通用户，**推荐通过蓝奏云下载**：
 
 - [**蓝奏云（推荐）**](https://wwbit.lanzoul.com/iqwvz3x5zlib) ｜ 提取码：`f9e9`
 - [**GitCode Releases**](https://gitcode.com/Pluto_14/BeatZFit/releases/v1.0.0)
