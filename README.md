@@ -35,7 +35,7 @@ BeatZ Fit 将 **音乐播放器**、**3D 音频可视化** 与 **健身训练管
 | 音频引擎 | Howler.js |
 | 数据库 | sql.js (SQLite WASM) |
 | 音乐元数据 | music-metadata |
-| 图像处理 | sharp |
+| 图像处理 | Electron nativeImage (内置) |
 | 网易云 API | NeteaseCloudMusicApi |
 | CSS | SCSS, 液态玻璃组件系统 |
 
@@ -45,12 +45,12 @@ BeatZ Fit 将 **音乐播放器**、**3D 音频可视化** 与 **健身训练管
 
 - **Node.js** ≥ 18
 - **npm** ≥ 9
-- **Windows 10+**（原生模块 sharp 需要 VS 2022 Build Tools）
+- **Windows 10+**
 
 ### 安装
 
 ```bash
-git clone https://github.com/<your-username>/BeatZFit.git
+git clone https://github.com/ZZ-Jie/BeatZFit.git
 cd BeatZFit
 npm install
 ```
@@ -83,6 +83,16 @@ npm run build
 ```bash
 npm test
 ```
+
+## 📥 下载
+
+不想配置开发环境、只想直接用的普通用户，**推荐通过蓝奏云下载**（无需登录、无需 Git，点链接 + 输密码即可）：
+
+- **蓝奏云（推荐）** — https://wwbit.lanzoul.com/iqwvz3x5zlib ｜ 提取码：`f9e9`
+- **GitCode Releases** — https://gitcode.com/Pluto_14/BeatZFit/releases/v1.0.0
+- **Gitee Releases** — https://gitee.com/ZZ--Jie/BeatZFit/releases/tag/v1.0.0
+
+> 开发者可 clone 本仓库自行 `npm install && npm run build`；各平台 Release 均提供 Windows NSIS 安装包。
 
 ## 📁 项目结构
 
