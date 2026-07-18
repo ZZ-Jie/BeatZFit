@@ -88,9 +88,9 @@ npm test
 
 不想配置开发环境、普通用户，**推荐通过蓝奏云下载**：
 
-- [**蓝奏云（推荐）**](https://wwbit.lanzoul.com/iqwvz3x5zlib) ｜ 提取码：`f9e9`
-- [**GitCode Releases**](https://gitcode.com/Pluto_14/BeatZFit/releases/v1.0.0)
-- [**Gitee Releases**](https://gitee.com/ZZ--Jie/BeatZFit/releases/tag/v1.0.0)
+- [**蓝奏云（推荐）**](https://wwbit.lanzoul.com/iLy2x3x8ptmb) ｜ 提取码：`ado6`
+- [**GitCode Releases**](https://gitcode.com/Pluto_14/BeatZFit/releases/v1.0.1)
+- ~~**Gitee Releases**~~ 已弃用。
 
 > 开发者可 clone 本仓库自行 `npm install && npm run build`；各平台 Release 均提供 Windows NSIS 安装包。
 
