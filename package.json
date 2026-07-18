@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "axios": "^1.7.9",
+    "electron-updater": "^6.8.9",
     "gsap": "^3.12.5",
     "howler": "^2.2.4",
     "music-metadata": "^10.5.0",
@@ -80,7 +81,9 @@
       "uninstallerIcon": "resources/icons/icon.ico",
       "installerHeaderIcon": "resources/icons/icon.ico",
       "include": "build/beatzfit-installer.nsh",
-      "installerLanguages": ["zh_CN"],
+      "installerLanguages": [
+        "zh_CN"
+      ],
       "language": "2052",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
@@ -90,6 +93,11 @@
       "dist/**/*",
       "dist-electron/**/*",
       "resources/**/*"
-    ]
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "ZZ-Jie",
+      "repo": "BeatZFit"
+    }
   }
 }

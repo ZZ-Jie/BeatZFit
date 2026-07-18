@@ -105,6 +105,65 @@ setAuroraColorCallback(cb: ((r: number, g: number, b: number) => void) | null): 
   private currentInteractionContainer: HTMLElement | null = null
   private onTransformChangeCallback: ((t: { rotationX: number; rotationY: number; scale: number }) => void) | null = null
 
+  // ===== Nuage (雾扰) 独立交互处理器 =====
+  // Nuage 预设没有可视化器对象, 无法复用各预设的 attachInteraction。
+  // 这里维护一套独立的拖拽/缩放交互, 确保该主题下也能 3D 交互 (相机轨道)
+  // 并消费 wheel 事件 (防止页面翻页导航)。
+  private nuageDragContainer: HTMLElement | null = null
+  private nuageIsDragging = false
+  private nuageLastPX = 0
+  private nuageLastPY = 0
+  private nuageRotX = 0
+  private nuageRotY = 0
+  private nuageTargetRotX = 0
+  private nuageTargetRotY = 0
+  private nuageScale = 1.0
+  private nuageTargetScale = 1.0
+  private nuageBoundDown = (e: PointerEvent): void => {
+    this.nuageIsDragging = true
+    this.nuageLastPX = e.clientX
+    this.nuageLastPY = e.clientY
+  }
+  private nuageBoundMove = (e: PointerEvent): void => {
+    if (!this.nuageIsDragging) return
+    const dx = e.clientX - this.nuageLastPX
+    const dy = e.clientY - this.nuageLastPY
+    this.nuageLastPX = e.clientX
+    this.nuageLastPY = e.clientY
+    this.nuageTargetRotY += dx * 0.005
+    this.nuageTargetRotX += dy * 0.005
+    this.nuageTargetRotX = Math.max(-0.8, Math.min(0.8, this.nuageTargetRotX))
+    this.onTransformChangeCallback?.({ rotationX: this.nuageTargetRotX, rotationY: this.nuageTargetRotY, scale: this.nuageTargetScale })
+  }
+  private nuageBoundUp = (): void => { this.nuageIsDragging = false }
+  private nuageBoundWheel = (e: WheelEvent): void => {
+    e.preventDefault()
+    e.stopPropagation()
+    const delta = -e.deltaY * 0.0015
+    this.nuageTargetScale = Math.max(0.5, Math.min(2.5, this.nuageTargetScale + delta))
+    this.onTransformChangeCallback?.({ rotationX: this.nuageTargetRotX, rotationY: this.nuageTargetRotY, scale: this.nuageTargetScale })
+  }
+  private nuageBoundTouchStart = (e: TouchEvent): void => {
+    if (!e.touches || !e.touches[0]) return
+    e.preventDefault()
+    this.nuageIsDragging = true
+    this.nuageLastPX = e.touches[0].clientX
+    this.nuageLastPY = e.touches[0].clientY
+  }
+  private nuageBoundTouchMove = (e: TouchEvent): void => {
+    if (!this.nuageIsDragging || !e.touches || !e.touches[0]) return
+    e.preventDefault()
+    const dx = e.touches[0].clientX - this.nuageLastPX
+    const dy = e.touches[0].clientY - this.nuageLastPY
+    this.nuageLastPX = e.touches[0].clientX
+    this.nuageLastPY = e.touches[0].clientY
+    this.nuageTargetRotY += dx * 0.005
+    this.nuageTargetRotX += dy * 0.005
+    this.nuageTargetRotX = Math.max(-0.8, Math.min(0.8, this.nuageTargetRotX))
+    this.onTransformChangeCallback?.({ rotationX: this.nuageTargetRotX, rotationY: this.nuageTargetRotY, scale: this.nuageTargetScale })
+  }
+  private nuageBoundTouchEnd = (): void => { this.nuageIsDragging = false }
+
   // ===== Visual DIY parameters (user-configurable from ControlPanel) =====
   private visualDiyParams = { scale: 1.0, particleDensity: 1.0, depth: 1.0, glow: 1.0 }
   private lastAppliedDensity = -1
@@ -411,6 +470,10 @@ if (this.auroraColorCallback) {
     this.crystalBloomVisualizer?.attachInteraction(container, (t) => {
       this.onTransformChangeCallback?.(t)
     })
+    // Nuage 预设没有可视化器对象, 使用独立交互处理器
+    if (this.currentPreset === 'nuage') {
+      this.attachNuageInteraction(container)
+    }
   }
 
   /**
@@ -422,7 +485,38 @@ if (this.auroraColorCallback) {
     this.reactiveVisualizer?.detachInteraction()
     this.lensVisualizer?.detachInteraction()
     this.crystalBloomVisualizer?.detachInteraction()
+    this.detachNuageInteraction()
     this.currentInteractionContainer = null
+  }
+
+  /**
+   * Nuage 独立交互: 拖拽旋转 + 滚轮缩放, 消费事件防止页面导航。
+   */
+  private attachNuageInteraction(container: HTMLElement): void {
+    this.detachNuageInteraction()
+    this.nuageDragContainer = container
+    container.addEventListener('pointerdown', this.nuageBoundDown)
+    container.addEventListener('pointermove', this.nuageBoundMove)
+    container.addEventListener('pointerup', this.nuageBoundUp)
+    container.addEventListener('pointercancel', this.nuageBoundUp)
+    container.addEventListener('wheel', this.nuageBoundWheel, { passive: false })
+    container.addEventListener('touchstart', this.nuageBoundTouchStart, { passive: false })
+    container.addEventListener('touchmove', this.nuageBoundTouchMove, { passive: false })
+    container.addEventListener('touchend', this.nuageBoundTouchEnd)
+  }
+
+  private detachNuageInteraction(): void {
+    if (this.nuageDragContainer) {
+      this.nuageDragContainer.removeEventListener('pointerdown', this.nuageBoundDown)
+      this.nuageDragContainer.removeEventListener('pointermove', this.nuageBoundMove)
+      this.nuageDragContainer.removeEventListener('pointerup', this.nuageBoundUp)
+      this.nuageDragContainer.removeEventListener('pointercancel', this.nuageBoundUp)
+      this.nuageDragContainer.removeEventListener('wheel', this.nuageBoundWheel)
+      this.nuageDragContainer.removeEventListener('touchstart', this.nuageBoundTouchStart)
+      this.nuageDragContainer.removeEventListener('touchmove', this.nuageBoundTouchMove)
+      this.nuageDragContainer.removeEventListener('touchend', this.nuageBoundTouchEnd)
+    }
+    this.nuageDragContainer = null
   }
 
   /**
@@ -442,7 +536,7 @@ if (this.auroraColorCallback) {
       ?? this.reactiveVisualizer?.getTransform()
       ?? this.lensVisualizer?.getTransform()
       ?? this.crystalBloomVisualizer?.getTransform()
-      ?? null
+      ?? (this.currentPreset === 'nuage' ? { rotationX: this.nuageRotX, rotationY: this.nuageRotY, scale: this.nuageScale } : null)
   }
 
   /**
@@ -454,6 +548,10 @@ if (this.auroraColorCallback) {
     this.reactiveVisualizer?.resetTransform()
     this.lensVisualizer?.resetTransform()
     this.crystalBloomVisualizer?.resetTransform()
+    // 重置 Nuage 交互状态
+    this.nuageTargetRotX = 0
+    this.nuageTargetRotY = 0
+    this.nuageTargetScale = 1.0
   }
 
   /**
@@ -476,6 +574,8 @@ if (this.auroraColorCallback) {
    * 未知名称将被静默忽略，避免旧版本设置 (如 'galaxy'/'aurora') 导致崩溃。
    */
   switchPreset(name: PresetName): void {
+    // 先解除 Nuage 独立交互 (若当前在 Nuage 预设), 避免新旧监听器并存
+    this.detachNuageInteraction()
     // 恢复默认相机设置（FOV=60, z=11.5），清除上一预设可能留下的偏移
     // crystalBloom 预设会改为 FOV=75, z=5，切换离开时需恢复
     //
@@ -775,6 +875,11 @@ if (this.auroraColorCallback) {
     }
 
     this.currentPreset = 'nuage'
+
+    // 绑定独立交互 (拖拽旋转 + 滚轮缩放), 确保该主题也能 3D 交互
+    if (this.currentInteractionContainer) {
+      this.attachNuageInteraction(this.currentInteractionContainer)
+    }
   }
 
   setPlaying(playing: boolean): void {
@@ -1029,6 +1134,21 @@ if (this.renderer) {
       this.crystalBloomVisualizer?.update(this.lastSpectrumData)
     }
 
+    // ── Nuage 交互: 平滑阻尼 + 相机轨道 ──
+    // 即使无 3D 物体, 相机轨道赋予空间控制感, 且事件已被消费
+    if (this.currentPreset === 'nuage' && this.camera) {
+      // 平滑插值
+      this.nuageRotX += (this.nuageTargetRotX - this.nuageRotX) * 0.12
+      this.nuageRotY += (this.nuageTargetRotY - this.nuageRotY) * 0.12
+      this.nuageScale += (this.nuageTargetScale - this.nuageScale) * 0.12
+      // 轨道相机: 围绕原点旋转
+      const r = this.cameraBaseZ / this.nuageScale
+      this.camera.position.x = Math.sin(this.nuageRotY) * r
+      this.camera.position.y = Math.sin(this.nuageRotX) * r
+      this.camera.position.z = Math.cos(this.nuageRotY) * Math.cos(this.nuageRotX) * r
+      this.camera.lookAt(0, 0, 0)
+    }
+
     // ── Apply Visual DIY parameters ──
     const diy = this.visualDiyParams
     if (this.scene) {
@@ -1128,6 +1248,7 @@ if (this.renderer) {
     this.crystalBloomVisualizer?.dispose()
     this.crystalBloomVisualizer = null
     this.onTransformChangeCallback = null
+    this.detachNuageInteraction()
     this.currentInteractionContainer = null
 
     // 极光背景清理

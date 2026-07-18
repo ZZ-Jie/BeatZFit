@@ -11,9 +11,11 @@ import { registerQqIPC } from './ipc/qq'
 import { registerBackgroundIPC } from './ipc/background'
 import { registerPlaylistIPC } from './ipc/playlist'
 import { registerLyricsIPC } from './ipc/lyrics'
+import { registerUpdateIPC } from './ipc/update'
 import { registerDesktopLyricIPC, createDesktopLyricWindow, setMainWindow } from './windows/desktopLyricWindow'
 import { createMainWindow } from './windows/mainWindow'
 import { SettingsService } from './services/settingsService'
+import { initUpdater } from './services/updateService'
 import { GlobalShortcutService } from './services/globalShortcutService'
 import { TrayService } from './services/trayService'
 
@@ -97,6 +99,7 @@ setMainWindow(mainWindow!)
   registerBackgroundIPC()
   registerPlaylistIPC()
   registerLyricsIPC()
+  registerUpdateIPC()
   registerDesktopLyricIPC()
 
   // Pre-create the desktop lyric window (hidden) so it's ready when toggled
@@ -122,6 +125,8 @@ setMainWindow(mainWindow!)
     mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     mainWindow.loadFile(join(__dirname, '../../dist/index.html'))
+    // Initialize auto-updater (only runs in production/packaged)
+    initUpdater(mainWindow!)
   }
 }
 

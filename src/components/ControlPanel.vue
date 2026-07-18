@@ -574,6 +574,10 @@
             </div>
             <p class="cp-tip" style="margin-top: 8px;">网易云音乐为非官方接口，相关功能为实验性能力。</p>
             <div class="cp-uniform-row" style="margin-top: 8px;">
+              <label>检查更新</label>
+              <button class="cp-btn" :disabled="checkingUpdate" @click="checkForUpdates">{{ checkingUpdate ? '检查中...' : '检查更新' }}</button>
+            </div>
+            <div class="cp-uniform-row" style="margin-top: 8px;">
               <label>重新查看引导</label>
               <button class="cp-btn" @click="replayOnboarding">查看引导</button>
             </div>
@@ -1479,6 +1483,33 @@ function replayOnboarding() {
     router.push('/')
     setTimeout(() => window.location.reload(), 300)
   })
+}
+
+// ── 检查更新 ──
+const checkingUpdate = ref(false)
+async function checkForUpdates() {
+  if (checkingUpdate.value) return
+  if (!window.electronAPI?.updater) {
+    toast.info('当前环境不支持自动更新')
+    return
+  }
+  checkingUpdate.value = true
+  try {
+    const res = await window.electronAPI.updater.checkForUpdates()
+    if (!res?.success) {
+      toast.info('当前为开发环境，不支持自动更新')
+    } else if (res.status === 'not-available') {
+      toast.success('已是最新版本')
+    } else if (res.status === 'available' || res.status === 'downloading') {
+      toast.info('发现新版本，正在下载...')
+    } else if (res.status === 'downloaded') {
+      toast.info('更新已下载完成，请点击右下角通知重启安装')
+    }
+  } catch {
+    toast.error('检查更新失败')
+  } finally {
+    checkingUpdate.value = false
+  }
 }
 
 function toBeatUrl(path: string) {

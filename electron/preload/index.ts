@@ -117,6 +117,12 @@ export interface ElectronAPI {
     showSettings: () => Promise<{ success: boolean; error?: string }>
     hideSettings: () => Promise<{ success: boolean; error?: string }>
   }
+  updater: {
+    checkForUpdates: () => Promise<{ success: boolean; status: string }>
+    downloadUpdate: () => Promise<{ success: boolean }>
+    installUpdate: () => Promise<{ success: boolean }>
+    getStatus: () => Promise<{ success: boolean; data?: { status: string; version: string | null; progress: number } }>
+  }
   on: (channel: string, callback: (...args: any[]) => void) => void
   removeListener: (channel: string, callback: (...args: any[]) => void) => void
   send: (channel: string, ...args: any[]) => void
@@ -242,6 +248,12 @@ const electronAPI: ElectronAPI = {
     getBounds: () => ipcRenderer.invoke('desktopLyric:getBounds'),
     showSettings: () => ipcRenderer.invoke('desktopLyric:showSettings'),
     hideSettings: () => ipcRenderer.invoke('desktopLyric:hideSettings'),
+  },
+  updater: {
+    checkForUpdates: () => ipcRenderer.invoke('updater:checkForUpdates'),
+    downloadUpdate: () => ipcRenderer.invoke('updater:downloadUpdate'),
+    installUpdate: () => ipcRenderer.invoke('updater:installUpdate'),
+    getStatus: () => ipcRenderer.invoke('updater:getStatus'),
   },
   on: (channel: string, callback: (...args: any[]) => void) => {
     ipcRenderer.on(channel, (_event, ...args) => callback(...args))

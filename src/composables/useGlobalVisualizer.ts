@@ -66,7 +66,7 @@ let stageObserver: IntersectionObserver | null = null
 
 // Reactive state shared with consumers
 const visualizerRef = ref<VisualizerScene | null>(null)
-const activePreset = ref<PresetName>('crystalBloom')
+const activePreset = ref<PresetName>('lens')
 const domeAngleMode = ref<'front' | 'back'>('front')
 const lyricAudioData = ref({
   bass: 0, mid: 0, treble: 0, volume: 0, beat: 0,
@@ -601,14 +601,14 @@ function setupWatchers() {
         if (presetResult.success && presetResult.data?.value) {
           const saved = presetResult.data.value as PresetName
           // Only apply the saved preset if it's valid; otherwise keep
-          // the default 'crystalBloom'.
+          // the default 'lens'.
           if (VALID_PRESETS.includes(saved)) {
             activePreset.value = saved
             visualizerInstance?.switchPreset(activePreset.value)
           } else {
-            // Invalid saved preset — reset to crystalBloom
-            activePreset.value = 'crystalBloom'
-            visualizerInstance?.switchPreset('crystalBloom')
+            // Invalid saved preset — reset to lens
+            activePreset.value = 'lens'
+            visualizerInstance?.switchPreset('lens')
           }
         }
         if (alwaysShowResult.success && alwaysShowResult.data?.value) {

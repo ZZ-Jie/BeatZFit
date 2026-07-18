@@ -17,7 +17,7 @@ export default defineConfig({
           build: {
             outDir: 'dist-electron/main',
             rollupOptions: {
-              external: ['electron', 'sql.js', 'music-metadata', 'NeteaseCloudMusicApi', 'sharp', 'axios'],
+              external: ['electron', 'sql.js', 'music-metadata', 'NeteaseCloudMusicApi', 'sharp', 'axios', 'electron-updater'],
               output: {
                 banner: `// BeatZFit auto-relaunch: if ELECTRON_RUN_AS_NODE is set (e.g. by CatPaw/Cursor/VSCode IDE),
 // Electron runs as plain Node.js (no GUI). Detect and relaunch as proper Electron.

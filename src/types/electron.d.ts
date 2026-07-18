@@ -114,6 +114,16 @@ pickLrcForTracks: (data: { trackIds: string[] }) => Promise<{ success: boolean; 
         isVisible: () => Promise<{ success: boolean; data?: { visible: boolean } }>
         setPosition: (data: { x: number; y: number }) => Promise<{ success: boolean; error?: string }>
         getPosition: () => Promise<{ success: boolean; data?: { x: number; y: number }; error?: string }>
+        setBounds: (data: { width: number; height: number; x?: number; y?: number }) => Promise<{ success: boolean; error?: string }>
+        getBounds: () => Promise<{ success: boolean; data?: { x: number; y: number; width: number; height: number }; error?: string }>
+        showSettings: () => Promise<{ success: boolean; error?: string }>
+        hideSettings: () => Promise<{ success: boolean; error?: string }>
+      }
+      updater: {
+        checkForUpdates: () => Promise<{ success: boolean; status: string }>
+        downloadUpdate: () => Promise<{ success: boolean }>
+        installUpdate: () => Promise<{ success: boolean }>
+        getStatus: () => Promise<{ success: boolean; data?: { status: string; version: string | null; progress: number } }>
       }
       on: (channel: string, callback: (...args: any[]) => void) => void
       removeListener: (channel: string, callback: (...args: any[]) => void) => void

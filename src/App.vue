@@ -131,6 +131,12 @@
 
     <!-- 全局 Toast / Confirm -->
     <GlobalToast v-if="!isDesktopLyric" />
+
+    <!-- 自动更新通知 -->
+    <UpdateNotifier v-if="!isDesktopLyric" />
+
+    <!-- 品牌启动动画 -->
+    <SplashOverlay v-if="showSplash && !isDesktopLyric" @done="showSplash = false" />
   </div>
 </template>
 
@@ -157,6 +163,8 @@ import { usePerformanceMonitor, measureStartup } from './composables/usePerforma
 import { usePageTransition, useBackdropTransition } from './composables/useGsapTransition'
 import { useGlobalVisualizer } from './composables/useGlobalVisualizer'
 import GlobalLyricLayer from './components/GlobalLyricLayer.vue'
+import SplashOverlay from './components/SplashOverlay.vue'
+import UpdateNotifier from './components/UpdateNotifier.vue'
 import { useSfx } from './composables/useSfx'
 
 const musicStore = useMusicStore()
@@ -164,6 +172,9 @@ const fitnessStore = useFitnessStore()
 const route = useRoute()
 const router = useRouter()
 const sfx = useSfx()
+
+// ── 品牌启动动画 ──
+const showSplash = ref(true)
 
 const glassAmbientColor = computed(() => musicStore.currentCoverPalette?.primary || '#FFFFFF')
 
