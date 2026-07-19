@@ -105,7 +105,7 @@ npm test
 
 不想配置开发环境、普通用户，**推荐通过蓝奏云下载**：
 
-- [**蓝奏云（推荐）**](https://wwbit.lanzoul.com/iLy2x3x8ptmb) ｜ 提取码：`ado6`
+- [**蓝奏云（推荐）**](https://wwbit.lanzoul.com/iW0RK3xgd5de) ｜ 提取码：`7xqu`
 - [**GitCode Releases**](https://gitcode.com/Pluto_14/BeatZFit/releases/v1.0.1)
 - ~~**Gitee Releases**~~ 已弃用。
 
