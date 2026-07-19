@@ -23,14 +23,14 @@ BeatZ Fit 将 **音乐播放器**、**3D 音频可视化** 与 **健身训练管
 
 ## 📸 界面展示
 
-### 首页 3D 唱片墙
-![首页 3D 唱片墙](screenshots/01-home.png)
+### 音乐库页
+![音乐库页](screenshots/01-home.png)
 
 ### 3D 音频可视化
 ![3D 音频可视化](screenshots/02-visualization.png)
 
-### 桌面歌词
-![桌面歌词](screenshots/03-lyrics.png)
+### 全沉浸式
+![全沉浸式](screenshots/03-lyrics.png)
 
 ### 动作库
 ![动作库](screenshots/04-action-library.png)
