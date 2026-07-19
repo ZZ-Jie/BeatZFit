@@ -493,9 +493,13 @@ async function onNeteaseLoginChanged(e: Event) {
   if (detail?.loggedIn) {
     // Login: clear cache and force reload playlists
     cacheInvalidatePrefix(CacheNS.NeteasePlaylists, '')
+    // Also clear playlist detail cache — otherwise tracks from a previous
+    // login session would be served stale when the user opens a playlist card.
+    cacheInvalidatePrefix(CacheNS.NeteasePlaylistDetail, '')
     await checkNeteaseStatus(true)
   } else {
     // Logout: clear playlists
+    cacheInvalidatePrefix(CacheNS.NeteasePlaylistDetail, '')
     neteasePlaylists.value = []
     _cachedNeteasePlaylists = []
   }

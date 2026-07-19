@@ -964,6 +964,9 @@ if (this.auroraColorCallback) {
     this.heldKeys.clear()
     if (this.camera) {
       this.camera.position.set(0, 0, this.cameraBaseZ)
+      // 重置相机朝向 — 与 switchPreset 保持一致，避免 Nuage 轨道交互
+      // 通过 lookAt() 修改的 rotation 残留
+      this.camera.rotation.set(0, 0, 0)
     }
     // Clear saved offset from localStorage
     try { localStorage.removeItem(VisualizerScene.CAMERA_STORAGE_KEY) } catch (e) { console.warn('[threeScene] Failed to remove camera offset from localStorage:', e) }

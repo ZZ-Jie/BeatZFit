@@ -55,10 +55,18 @@ async function _loadLikedList(force = false): Promise<void> {
  * Called by useNeteaseSyncManager when an external change is detected.
  * This is separate from 'beatzfit:neteaseDataChanged' to avoid a redundant
  * fetch after local toggleLike (which already updates the Set optimistically).
+ *
+ * If a load is already in-flight (e.g. from toggleLike), we wait for it to
+ * complete first, then do a second fetch — avoiding two concurrent requests
+ * racing to write `likedSongIds.value`.
  */
-export function refreshLikedListFromExternal(): void {
+export async function refreshLikedListFromExternal(): Promise<void> {
   _loaded = false
-  void _loadLikedList(true)
+  // If a load is already in-flight, wait for it before starting a new one
+  if (_loadPromise) {
+    try { await _loadPromise } catch { /* ignore */ }
+  }
+  await _loadLikedList(true)
 }
 
 export function useNeteaseLikes() {

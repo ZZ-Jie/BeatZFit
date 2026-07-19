@@ -7,18 +7,17 @@
  *
  * Design:
  *   - Polls likedSongIds + userPlaylists every 60s.
- *   - On the FIRST poll, stores baselines silently (no event/action).
- *   - On subsequent polls, compares IDs:
- *     • Liked songs changed → calls refreshLikedListFromExternal() directly
- *       (NOT via 'beatzfit:neteaseDataChanged', to avoid a redundant server
- *       fetch after local toggleLike which already updated the Set optimistically).
- *     • Playlists changed → invalidates caches + dispatches
- *       'beatzfit:neteaseDataChanged' so DualDeckHome refreshes.
- *   - Pauses entirely when the document is hidden (window minimized / tab
- *     switched), resumes 2s after focus.
- *   - Only active when the user is logged in to Netease.
- *   - Module-level singleton: safe to call from multiple components, the
- *     interval is started once.
+ *   - On the FIRST poll after login, stores baselines silently (no event).
+ *   - On subsequent polls, compares:
+ *     • Liked-song IDs: set equality → refreshLikedListFromExternal()
+ *     • Playlist signatures: `id:trackCount` map (NOT just IDs, because
+ *       adding songs to an existing playlist changes trackCount but not
+ *       the playlist ID). On change → invalidate ALL playlist detail
+ *       caches + dispatch 'beatzfit:neteaseDataChanged'.
+ *   - Pauses entirely when the document is hidden, resumes 2s after focus.
+ *   - Listens for 'beatzfit:neteaseLoginChanged' to reset baselines on
+ *     re-login (otherwise the old baseline would mask real changes).
+ *   - Module-level singleton: safe to call from multiple components.
  */
 import { onScopeDispose } from 'vue'
 import { cacheInvalidatePrefix, CacheNS } from '@/modules/music/cache'
@@ -27,11 +26,11 @@ import { refreshLikedListFromExternal } from './useNeteaseLikes'
 // ── Module-level singleton state ───────────────────────────
 let _timer: ReturnType<typeof setTimeout> | null = null
 let _started = false
-let _initialized = false // false = baselines not yet captured
+let _initialized = false // false = baselines not yet captured (after login)
 let _lastLikeIds: Set<number> = new Set()
-let _lastPlaylistIds: Set<number> = new Set()
+let _lastPlaylistSig: Map<number, number> = new Map() // playlistId → trackCount
 
-const POLL_INTERVAL_MS = 60_000 // 60s — short enough for near-real-time, long enough to avoid rate limits
+const POLL_INTERVAL_MS = 60_000 // 60s
 
 function _clearTimer() {
   if (_timer) {
@@ -41,14 +40,38 @@ function _clearTimer() {
 }
 
 function _scheduleNext() {
-  // Guard: don't schedule if stopped (prevents re-entrancy after onScopeDispose)
   if (!_started) return
   _clearTimer()
   _timer = setTimeout(_poll, POLL_INTERVAL_MS)
 }
 
+/** Reset baselines — called on login/logout so the next poll captures a fresh baseline. */
+function _resetBaselines() {
+  _initialized = false
+  _lastLikeIds = new Set()
+  _lastPlaylistSig = new Map()
+}
+
+function _onLoginChanged(e: Event) {
+  const detail = (e as CustomEvent).detail as { loggedIn: boolean } | undefined
+  if (detail?.loggedIn) {
+    // Re-login: reset baselines so changes are detected against the new account
+    _resetBaselines()
+    // Trigger an immediate poll to capture the new baseline quickly
+    // Guard: only schedule if the manager is active (App.vue mounted)
+    if (_started) {
+      _clearTimer()
+      _timer = setTimeout(_poll, 3_000)
+    }
+  } else {
+    // Logout: clear baselines + stop polling until re-login
+    // (avoids useless getLoginStatus calls every 60s while logged out)
+    _clearTimer()
+    _resetBaselines()
+  }
+}
+
 async function _poll() {
-  // Abort if document is hidden (window minimized / tab inactive)
   if (document.hidden) {
     if (_started) _timer = setTimeout(_poll, 15_000)
     return
@@ -60,7 +83,8 @@ async function _poll() {
       return
     }
 
-    // Check login status (cheap, cached 60s by useNeteaseStatus)
+    // Check login status via IPC (bypasses useNeteaseStatus's 60s cache,
+    // ensuring we detect re-login in another component immediately).
     const loginRes = await window.electronAPI.netease.getLoginStatus()
     if (!loginRes.success || !loginRes.data?.isLoggedIn || !loginRes.data.userInfo) {
       _scheduleNext()
@@ -77,27 +101,31 @@ async function _poll() {
           _lastLikeIds = newSet
         } else if (!_setsEqual(_lastLikeIds, newSet)) {
           _lastLikeIds = newSet
-          // Directly refresh the liked-song Set — no event dispatch needed
-          refreshLikedListFromExternal()
+          // Refresh the shared likedSongIds Set — await to ensure it completes
+          // within this poll cycle (the next poll compares against _lastLikeIds
+          // which we just updated, so no risk of duplicate dispatch).
+          await refreshLikedListFromExternal()
         }
       }
     }
 
-    // 2) User playlists
+    // 2) User playlists — compare id:trackCount signatures
     {
       const res = await window.electronAPI.netease.getUserPlaylists(uid)
       if (res.success && res.data?.playlists) {
-        const newSet = new Set(res.data.playlists.map((p) => p.id))
+        const newSig = new Map<number, number>()
+        for (const p of res.data.playlists) {
+          newSig.set(p.id, p.trackCount ?? 0)
+        }
         if (!_initialized) {
-          _lastPlaylistIds = newSet
-        } else if (!_setsEqual(_lastPlaylistIds, newSet)) {
-          _lastPlaylistIds = newSet
+          _lastPlaylistSig = newSig
+        } else if (!_sigsEqual(_lastPlaylistSig, newSig)) {
+          _lastPlaylistSig = newSig
           _dispatchPlaylistChange()
         }
       }
     }
 
-    // After both calls complete successfully, mark as initialized
     _initialized = true
   } catch (e) {
     console.error('[NeteaseSyncManager] Poll failed:', e)
@@ -114,7 +142,17 @@ function _setsEqual(a: Set<number>, b: Set<number>): boolean {
   return true
 }
 
+function _sigsEqual(a: Map<number, number>, b: Map<number, number>): boolean {
+  if (a.size !== b.size) return false
+  for (const [id, count] of a) {
+    if (b.get(id) !== count) return false
+  }
+  return true
+}
+
 function _dispatchPlaylistChange() {
+  // Invalidate BOTH playlist list and all playlist detail caches.
+  // trackCount change means the tracks inside changed — detail cache is stale.
   cacheInvalidatePrefix(CacheNS.NeteasePlaylists, '')
   cacheInvalidatePrefix(CacheNS.NeteasePlaylistDetail, '')
   window.dispatchEvent(new CustomEvent('beatzfit:neteaseDataChanged'))
@@ -124,30 +162,24 @@ function _onVisibilityChange() {
   if (document.hidden) {
     _clearTimer()
   } else if (_started) {
-    // Resume shortly after focus
     _clearTimer()
     _timer = setTimeout(_poll, 2_000)
   }
 }
 
-/**
- * Start the background sync.  Call once from a long-lived component (App.vue).
- * Safe to call multiple times — the singleton guard prevents duplicate timers.
- */
 export function useNeteaseSyncManager() {
   if (!_started) {
     _started = true
     document.addEventListener('visibilitychange', _onVisibilityChange)
-    // Delay first poll 5s to avoid competing with app startup API calls
+    window.addEventListener('beatzfit:neteaseLoginChanged', _onLoginChanged)
     _timer = setTimeout(_poll, 5_000)
   }
 
   onScopeDispose(() => {
     _clearTimer()
     document.removeEventListener('visibilitychange', _onVisibilityChange)
+    window.removeEventListener('beatzfit:neteaseLoginChanged', _onLoginChanged)
     _started = false
-    _initialized = false
-    _lastLikeIds = new Set()
-    _lastPlaylistIds = new Set()
+    _resetBaselines()
   })
 }
