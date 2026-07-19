@@ -587,6 +587,10 @@ if (this.auroraColorCallback) {
       this.camera.updateProjectionMatrix()
       this.cameraBaseZ = 11.5
       this.camera.position.set(0, 0, this.cameraBaseZ)
+      // 重置相机朝向 — Nuage 轨道交互通过 lookAt() 修改了 camera.rotation，
+      // 切换到其他预设时若不重置，相机会从 (0,0,11.5) 位置以斜角看向原点，
+      // 导致所有 3D 物体错位。必须同步重置 rotation。
+      this.camera.rotation.set(0, 0, 0)
       this.cameraTargetPos.set(0, 0, this.cameraBaseZ)
       this.cameraVelocity.set(0, 0, 0)
       this.heldKeys.clear()

@@ -166,12 +166,16 @@ import GlobalLyricLayer from './components/GlobalLyricLayer.vue'
 import SplashOverlay from './components/SplashOverlay.vue'
 import UpdateNotifier from './components/UpdateNotifier.vue'
 import { useSfx } from './composables/useSfx'
+import { useNeteaseSyncManager } from './composables/useNeteaseSyncManager'
 
 const musicStore = useMusicStore()
 const fitnessStore = useFitnessStore()
 const route = useRoute()
 const router = useRouter()
 const sfx = useSfx()
+
+// ── 网易云后台增量同步（单例，仅登录后轮询）──
+useNeteaseSyncManager()
 
 // ── 品牌启动动画 ──
 const showSplash = ref(true)

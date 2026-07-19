@@ -10,6 +10,9 @@
  *   - Cache invalidation (NeteasePlaylists + NeteasePlaylistDetail)
  *   - Global CustomEvent dispatch ('beatzfit:neteaseDataChanged')
  *   - Lazy loading of the liked-list on first access
+ *   - External sync (useNeteaseSyncManager calls refreshLikedListFromExternal()
+ *     when other clients change the liked list — NOT via the shared event, to
+ *     avoid a redundant server fetch after local toggleLike)
  */
 import { ref } from 'vue'
 import { useNeteaseStatus } from './useNeteaseStatus'
@@ -20,33 +23,48 @@ const likedSongIds = ref<Set<number>>(new Set())
 let _loaded = false
 let _loadPromise: Promise<void> | null = null
 
-export function useNeteaseLikes() {
+// ── Module-level loader (callable from sync manager without composable instance) ──
+async function _loadLikedList(force = false): Promise<void> {
   const { isLoggedIn, userInfo } = useNeteaseStatus()
+  if (!force && _loaded) return
+  if (!isLoggedIn.value || !userInfo.value?.userId) return
+  if (!window.electronAPI?.netease?.getLikelist) return
 
+  // Deduplicate concurrent calls
+  if (_loadPromise && !force) return _loadPromise
+
+  _loadPromise = (async () => {
+    try {
+      const result = await window.electronAPI!.netease.getLikelist(userInfo.value!.userId)
+      if (result.success && result.data?.ids) {
+        likedSongIds.value = new Set(result.data.ids)
+      }
+      _loaded = true
+    } catch (e) {
+      console.error('[useNeteaseLikes] Failed to load liked list:', e)
+    } finally {
+      _loadPromise = null
+    }
+  })()
+
+  return _loadPromise
+}
+
+/**
+ * Force-reload the liked list from the server.
+ * Called by useNeteaseSyncManager when an external change is detected.
+ * This is separate from 'beatzfit:neteaseDataChanged' to avoid a redundant
+ * fetch after local toggleLike (which already updates the Set optimistically).
+ */
+export function refreshLikedListFromExternal(): void {
+  _loaded = false
+  void _loadLikedList(true)
+}
+
+export function useNeteaseLikes() {
   /** Load the liked-song ID set from the backend (once per login). */
   async function loadLikedList(force = false): Promise<void> {
-    if (!force && _loaded) return
-    if (!isLoggedIn.value || !userInfo.value?.userId) return
-    if (!window.electronAPI?.netease?.getLikelist) return
-
-    // Deduplicate concurrent calls
-    if (_loadPromise && !force) return _loadPromise
-
-    _loadPromise = (async () => {
-      try {
-        const result = await window.electronAPI!.netease.getLikelist(userInfo.value!.userId)
-        if (result.success && result.data?.ids) {
-          likedSongIds.value = new Set(result.data.ids)
-        }
-        _loaded = true
-      } catch (e) {
-        console.error('[useNeteaseLikes] Failed to load liked list:', e)
-      } finally {
-        _loadPromise = null
-      }
-    })()
-
-    return _loadPromise
+    return _loadLikedList(force)
   }
 
   /** Check whether a song is liked. Reactive — re-evaluates when the Set changes. */
