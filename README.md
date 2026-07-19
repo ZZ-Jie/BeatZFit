@@ -21,6 +21,23 @@ BeatZ Fit 将 **音乐播放器**、**3D 音频可视化** 与 **健身训练管
 - **DIY 个性化** — 3D 视觉参数、歌词样式、极光色彩实时调节
 - **交互音效系统** — 4 种音效（detent / airBloom / retract / confirm ）贯穿全应用
 
+## 📸 界面展示
+
+### 首页 3D 唱片墙
+![首页 3D 唱片墙](screenshots/01-home.png)
+
+### 3D 音频可视化
+![3D 音频可视化](screenshots/02-visualization.png)
+
+### 桌面歌词
+![桌面歌词](screenshots/03-lyrics.png)
+
+### 动作库
+![动作库](screenshots/04-action-library.png)
+
+### 训练数据看板
+![训练数据看板](screenshots/05-training-data.png)
+
 ## 🛠 技术栈
 
 | 层 | 技术 |
